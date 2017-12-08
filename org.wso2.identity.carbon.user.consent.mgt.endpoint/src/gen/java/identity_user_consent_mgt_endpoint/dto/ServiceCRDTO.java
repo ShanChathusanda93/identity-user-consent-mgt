@@ -23,7 +23,7 @@ public class ServiceCRDTO  {
   @NotNull
   private String serviceName = null;
   
-  @NotNull
+  
   private List<PurposeDTO> purposes = new ArrayList<PurposeDTO>();
 
   
@@ -53,7 +53,7 @@ public class ServiceCRDTO  {
   
   /**
    **/
-  @ApiModelProperty(required = true, value = "")
+  @ApiModelProperty(value = "")
   @JsonProperty("purposes")
   public List<PurposeDTO> getPurposes() {
     return purposes;

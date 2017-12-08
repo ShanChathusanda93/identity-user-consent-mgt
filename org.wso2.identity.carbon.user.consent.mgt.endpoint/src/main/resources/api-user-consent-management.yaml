@@ -112,12 +112,7 @@ paths:
         200:
           description: "successful operation"
           schema:
-            type: "object"
-            properties:
-              services:
-                type: "array"
-                items:
-                  $ref: '#/definitions/ServiceCR'
+            $ref: '#/definitions/ServiceList'
         400:
           description: "invalid subject name supplied"
         404:
@@ -144,8 +139,8 @@ paths:
 
   /consent/{subjectName}/services/{serviceId}/purpose:
     get:
-      summary: "Getting details of a purpose"
-      description: "Getting details of a purpose of a service by subject name"
+      summary: "Getting details of purposes"
+      description: "Getting details of purposes of a service by subject name"
       tags:
         - "Data Retrieval"
       parameters:
@@ -237,8 +232,6 @@ paths:
       description: "Getting details of services from the database"
       tags:
         - "Data Retrieval"
-      parameters:
-        - $ref: '#/parameters/service'
       responses:
         200:
           description: "successful operation"
@@ -246,6 +239,8 @@ paths:
             $ref: '#/definitions/ServiceInput'
         404:
            description: "content not found"
+        500:
+          description: "Internal server error"
 
     put:
       summary: "Updating a service"
@@ -442,6 +437,9 @@ definitions:
   PurposeWebForm:
     type: "object"
     properties:
+      purposeId:
+        type: "integer"
+        format: "int32"
       purposeName:
         type: "string"
     required: [
@@ -565,13 +563,15 @@ definitions:
           $ref: '#/definitions/Purpose'
     required: [
       serviceId,
-      serviceName,
-      purposes
+      serviceName
       ]
 
   ServiceWebForm:
     type: "object"
     properties:
+      serviceId:
+        type: "integer"
+        format: "int32"
       serviceName:
         type: "string"
       purposes:
@@ -593,6 +593,17 @@ definitions:
         type: "string"
     required: [
       serviceName
+    ]
+
+  ServiceList:
+    type: "object"
+    properties:
+      serviceList:
+        type: "array"
+        items:
+          $ref: '#/definitions/ServiceCR'
+    required: [
+      serviceList
     ]
 
   ConsentReceipt:

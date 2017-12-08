@@ -13,7 +13,7 @@ import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentRevokeListDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentDTO;
-import identity_user_consent_mgt_endpoint.dto.InlineResponse200DTO;
+import identity_user_consent_mgt_endpoint.dto.ServiceListDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceCRDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentByThirdPartyDTO;
@@ -33,7 +33,7 @@ public abstract class ConsentApiService {
     public abstract Response consentConfigurationPurposeGet();
     public abstract Response consentConfigurationPurposePost(PurposeInputDTO purpose);
     public abstract Response consentConfigurationPurposePut(PurposeInputDTO purpose);
-    public abstract Response consentConfigurationServiceGet(ServiceInputDTO service);
+    public abstract Response consentConfigurationServiceGet();
     public abstract Response consentConfigurationServicePost(ServiceInputDTO service);
     public abstract Response consentConfigurationServicePut(ServiceInputDTO service);
     public abstract Response consentReceiptPost(ConsentReceiptDTO userDetails);

@@ -1,17 +1,18 @@
 package org.wso2.identity.carbon.user.consent.mgt.backend.DAO;
 
-import com.hazelcast.client.connection.nio.ClientConnection;
-import org.wso2.identity.carbon.user.consent.mgt.backend.dbconnect.DBConnect;
+import jdk.nashorn.internal.ir.WhileNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.identity.carbon.user.consent.mgt.backend.DAOInterfaces.MainDaoInt;
+import org.wso2.identity.carbon.user.consent.mgt.backend.constants.SQLQueries;
+import org.wso2.identity.carbon.user.consent.mgt.backend.dbconnect.DBConnect;
+import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
-import org.wso2.identity.carbon.user.consent.mgt.backend.DAOInterfaces.MainDaoInt;
-import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -225,6 +226,79 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
         }
     }
 
+    public List<ServicesDO> getServiceDetailsByThirdParty(String subjectName,int thirdPartyId){
+        ConsentDao consentDao=new ConsentDao();
+        ConsentDO user=consentDao.getSGUIDByUser(subjectName);
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+
+            String query="SELECT DISTINCT C.PII_PRINCIPAL_ID,A.SERVICE_ID,D.SERVICE_DESCRIPTION,B.THIRD_PARTY_ID\n" +
+                    "FROM SERVICE_MAP_CRID AS A,PURPOSES AS B,TRANSACTION_DETAILS AS C,SERVICES AS D\n" +
+                    "WHERE A.SGUID=?\n" +
+                    "AND A.PURPOSE_ID=B.PURPOSE_ID\n" +
+                    "AND A.SGUID=C.SGUID\n" +
+                    "AND A.SERVICE_ID=D.SERVICE_ID\n" +
+                    "AND B.THIRD_PARTY_ID=?;";
+
+            try {
+                PreparedStatement preparedStatement=connection.prepareStatement(query);
+                preparedStatement.setString(1,user.getSGUID());
+                preparedStatement.setInt(2,thirdPartyId);
+                ResultSet resultSet=preparedStatement.executeQuery();
+
+                List<ServicesDO> servicesDOList=new ArrayList<>();
+                while (resultSet.next()){
+                    ServicesDO servicesDO=new ServicesDO();
+                    servicesDO.setServiceId(resultSet.getInt(2));
+                    servicesDO.setServiceDescription(resultSet.getString(3));
+                    List<Integer> purposeIdList=getPurposeIdByUserByServiceByThirdParty(user.getSGUID(),resultSet
+                            .getInt(2),thirdPartyId);
+                    List<PurposeDetailsDO> purposeDetailsDOList=new ArrayList<>();
+                    for(int i=0;i<purposeIdList.size();i++){
+                        PurposeDetailsDO purposeDetailsDO=getPurposeDetailsByPurposeId(purposeIdList.get(i));
+                        purposeDetailsDOList.add(purposeDetailsDO);
+                    }
+                    servicesDO.setPurposeDetails(purposeDetailsDOList.toArray(new PurposeDetailsDO[0]));
+                    servicesDOList.add(servicesDO);
+                }
+                return servicesDOList;
+            } catch (SQLException e) {
+                System.out.println("err");
+            }
+        }
+        return null;
+    }
+
+    private List<Integer> getPurposeIdByUserByServiceByThirdParty(String sguid, int serviceId, int thirdPartyId){
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+
+            String query="SELECT A.SGUID,A.SERVICE_ID,A.PURPOSE_ID,B.THIRD_PARTY_ID\n" +
+                    "FROM SERVICE_MAP_CRID AS A,PURPOSES AS B\n" +
+                    "WHERE A.SERVICE_ID=?\n" +
+                    "AND A.SGUID=?\n" +
+                    "AND B.THIRD_PARTY_ID=?\n" +
+                    "AND A.PURPOSE_ID=B.PURPOSE_ID;";
+
+            try {
+                PreparedStatement preparedStatement=connection.prepareStatement(query);
+                preparedStatement.setInt(1,serviceId);
+                preparedStatement.setString(2,sguid);
+                preparedStatement.setInt(3,thirdPartyId);
+                ResultSet resultSet=preparedStatement.executeQuery();
+                List<Integer> purposeIdList=new ArrayList<>();
+                while (resultSet.next()){
+                    int i=resultSet.getInt(3);
+                    purposeIdList.add(i);
+                }
+                return purposeIdList;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
     /**
      * This method gets the SGUID for one user
      *
@@ -236,8 +310,8 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
         if (dbConnect.connect()) {
             Connection con = dbConnect.getConnection();
 
-            String query = "SELECT A.SGUID,A.PII_PRINCIPAL_ID\n" + "FROM TRANSACTION_DETAILS AS A\n"
-                    + "WHERE A.PII_PRINCIPAL_ID=?;";
+            String query = "SELECT A.SGUID,A.PII_PRINCIPAL_ID FROM TRANSACTION_DETAILS AS A WHERE A" +
+                    ".PII_PRINCIPAL_ID=?;";
             try {
                 PreparedStatement preparedStatement = con.prepareStatement(query);
                 preparedStatement.setString(1, piiPrincipalId);
@@ -400,7 +474,7 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
      */
     @Override
     public ServicesDO getServicesByUserByServiceId(String piiPrincipalId, int serviceId) throws DataAccessException {
-        if (dbConnect.connect()) {
+        /*if (dbConnect.connect()) {
             Connection con = dbConnect.getConnection();
 
             ConsentDao consentDao = new ConsentDao();
@@ -461,19 +535,122 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 throw new DataAccessException(
                         "Error occurred while getting org.wso2.identity.carbon.user.consent.mgt.backend.constants.service : " + serviceId + " to user : " + piiPrincipalId);
             }
+        }*/
+        return null;
+    }
+
+    public ServicesDO getServiceByUserByServiceIdDemo(String subjectName, int serviceId) {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+
+            ConsentDao consentDao = new ConsentDao();
+            ConsentDO consentDO = consentDao.getSGUIDByUser(subjectName);
+
+            String query = "SELECT A.SGUID,A.SERVICE_ID,B.SERVICE_DESCRIPTION,A.PURPOSE_ID,A.STATUS\n" +
+                    "FROM SERVICE_MAP_CRID AS A,SERVICES AS B\n" +
+                    "WHERE A.SGUID=?\n" +
+                    "AND A.STATUS=\"Approved\"\n" +
+                    "AND A.SERVICE_ID=?\n" +
+                    "AND A.SERVICE_ID=B.SERVICE_ID;";
+
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, consentDO.getSGUID());
+                preparedStatement.setInt(2, serviceId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                List<PurposeDetailsDO> purposeDetailsDOList = new ArrayList<>();
+                while (resultSet.next()) {
+                    PurposeDetailsDO purposeDetailsDO=getPurposeDetailsByPurposeId(resultSet.getInt(4));
+                    purposeDetailsDOList.add(purposeDetailsDO);
+                }
+                resultSet.first();
+                ServicesDO servicesDO = new ServicesDO();
+                servicesDO.setServiceId(resultSet.getInt(2));
+                servicesDO.setServiceDescription(resultSet.getString(3));
+                servicesDO.setPurposeDetails(purposeDetailsDOList.toArray(new PurposeDetailsDO[0]));
+                return servicesDO;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }
 
-    /**
+    private PurposeDetailsDO getPurposeDetailsByPurposeId(int purposeId) {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+
+            String query = "SELECT A.*,B.THIRD_PARTY_NAME FROM PURPOSES AS A,THIRD_PARTY AS B WHERE PURPOSE_ID=? AND " +
+                    "A.THIRD_PARTY_ID=B.THIRD_PARTY_ID;";
+
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, purposeId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                PurposeDetailsDO purposeDetailsDO = new PurposeDetailsDO();
+                resultSet.first();
+                purposeDetailsDO.setPurposeId(resultSet.getInt(1));
+                purposeDetailsDO.setPurpose(resultSet.getString(2));
+                purposeDetailsDO.setPrimaryPurpose(String.valueOf(resultSet.getInt(4)));
+                purposeDetailsDO.setTermination(String.valueOf(resultSet.getInt(5)));
+                purposeDetailsDO.setThirdPartyDis(String.valueOf(resultSet.getInt(6)));
+                purposeDetailsDO.setThirdPartyId(resultSet.getInt(7));
+                purposeDetailsDO.setthirdPartyName(resultSet.getString(8));
+
+                PurposeCategoryDO[] purposeCategoryDOArr = getPurposeCatsForPurposeConf(resultSet.getInt(1)).toArray
+                        (new PurposeCategoryDO[0]);
+                purposeDetailsDO.setPurposeCategoryDOArr(purposeCategoryDOArr);
+
+                PiiCategoryDO[] piiCategoryDOArr= getPersonalIdentifyCatForPurposeConf(resultSet.getInt(1)).toArray
+                        (new PiiCategoryDO[0]);
+                purposeDetailsDO.setpiiCategoryArr(piiCategoryDOArr);
+                return purposeDetailsDO;
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } catch (DataAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    /*private List<PurposeCategoryDO> getPurposeCategoriesByPurposeId(int purposeId) {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+
+            String query = "SELECT A.*,B.PURPOSE_CAT_SHORT_CODE\n" +
+                    "FROM PURPOSE_MAP_PURPOSE_CAT AS A,PURPOSE_CATEGORY AS B\n" +
+                    "WHERE PURPOSE_ID=?\n" +
+                    "AND A.PURPOSE_CAT_ID=B.PURPOSE_CAT_ID;";
+
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, purposeId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                List<PurposeCategoryDO> purposeCategoryDOList = new ArrayList<>();
+                while (resultSet.next()) {
+                    PurposeCategoryDO purposeCategoryDO = new PurposeCategoryDO();
+                    purposeCategoryDO.setPurposeId(resultSet.getInt(1));
+                    purposeCategoryDO.setPurposeCatId(resultSet.getInt(2));
+                    purposeCategoryDO.setPurposeCatShortCode(resultSet.getString(3));
+                    purposeCategoryDOList.add(purposeCategoryDO);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }*/
+
+   /* *
      * This method gets services and purposes by org.wso2.identity.carbon.user.consent.mgt.backend.constants.service id and purpose id for one user
      *
-     * @param piiPrincipalId
+     * @param
      * @param serviceId
      * @param purposeId
      * @return
-     * @throws DataAccessException
-     */
+     * @throws DataAccessException*/
     @Override
     public ServicesDO[] getServicePurposesByUserByServiceByPurposeId(String piiPrincipalId, int serviceId,
                                                                      int purposeId) throws DataAccessException {
@@ -540,6 +717,37 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 throw new DataAccessException(
                         "Error occurred while getting the purpose : " + purposeId + " to user : " + piiPrincipalId,
                         e);
+            }
+        }
+        return null;
+    }
+
+    public PurposeDetailsDO getPurposeByUserByService(String subjectName,int serviceId,int purposeId) throws DataAccessException{
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+
+            ConsentDao consentDao = new ConsentDao();
+            ConsentDO consentDO = consentDao.getSGUIDByUser(subjectName);
+
+            String query="SELECT A.SGUID,A.SERVICE_ID,B.SERVICE_DESCRIPTION,A.PURPOSE_ID,A.STATUS\n" +
+                    "FROM SERVICE_MAP_CRID AS A,SERVICES AS B\n" +
+                    "WHERE A.SGUID=?\n" +
+                    "AND A.STATUS=\"Approved\"\n" +
+                    "AND A.SERVICE_ID=?\n" +
+                    "AND A.PURPOSE_ID=?\n" +
+                    "AND A.SERVICE_ID=B.SERVICE_ID;";
+
+            try {
+                PreparedStatement preparedStatement=connection.prepareStatement(query);
+                preparedStatement.setString(1,consentDO.getSGUID());
+                preparedStatement.setInt(2,serviceId);
+                preparedStatement.setInt(3,purposeId);
+                ResultSet resultSet=preparedStatement.executeQuery();
+                resultSet.first();
+                PurposeDetailsDO purposeDetailsDO=getPurposeDetailsByPurposeId(resultSet.getInt(4));
+                return purposeDetailsDO;
+            } catch (SQLException e) {
+                throw new DataAccessException("Error occurred while getting the purpose details",e);
             }
         }
         return null;
@@ -634,7 +842,7 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
 
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the org.wso2.identity.carbon.user.consent.mgt.backend.constants.service id by org.wso2.identity.carbon.user.consent.mgt.backend.constants.service name");
+                throw new DataAccessException("Error occurred while getting the service name");
             }
         }
         return serviceId;
@@ -970,8 +1178,8 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                     log.debug("Service : " + service.getServiceDescription() + " successfully added to the data store");
                 }
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while adding the org.wso2.identity.carbon.user.consent.mgt.backend.constants.service : " + service
-                        .getServiceDescription() + " to the data store");
+                throw new DataAccessException("Error occurred while adding the service : " + service.getServiceDescription() +
+                        " to the data store");
             }
         }
     }
@@ -1001,8 +1209,7 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                             "store");
                 }
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while updating the org.wso2.identity.carbon.user.consent.mgt.backend.constants.service : " + service
-                        .getServiceDescription());
+                throw new DataAccessException("Error occurred while updating the service : " + service.getServiceDescription());
             }
         }
     }
@@ -1071,7 +1278,8 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                     preparedStatement.setInt(3, serviceList.get(i).getServiceId());
                     for (int j = 0; j < serviceList.get(i).getPurposeDetailsArr().length; j++) {
                         if (serviceList.get(i).getPurposeDetailsArr()[j].getPurposeId() != 0) {
-                            preparedStatement.setInt(4, serviceList.get(i).getPurposeDetailsArr()[j].getPurposeId());
+                            preparedStatement.setInt(4, serviceList.get(i).getPurposeDetailsArr()[j].
+                                    getPurposeId());
                             preparedStatement.executeUpdate();
                         }
                     }
@@ -1124,7 +1332,8 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
      * @param timestamp
      * @throws DataAccessException
      */
-    public void trackConsentReceipt(String jsonJWT, String consentReceiptId, String SGUID, String timestamp) throws DataAccessException {
+    public void trackConsentReceipt(String jsonJWT, String consentReceiptId, String SGUID, String timestamp)
+            throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
 
@@ -1194,7 +1403,8 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                     purposeDetailsDO.setPurposeId(resultSet.getInt(1));
                     purposeDetailsDO.setPurpose(resultSet.getString(2));
 
-                    PurposeCategoryDO[] purposeCategoryDOArr = getPurposeCatsForPurposeConf(resultSet.getInt(1)).toArray(new PurposeCategoryDO[0]);
+                    PurposeCategoryDO[] purposeCategoryDOArr = getPurposeCatsForPurposeConf(resultSet.getInt(1))
+                            .toArray(new PurposeCategoryDO[0]);
                     purposeDetailsDO.setPurposeCategoryDOArr(purposeCategoryDOArr);
 
                     purposeDetailsDO.setPrimaryPurpose(resultSet.getString(4));
@@ -1203,7 +1413,8 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                     purposeDetailsDO.setThirdPartyId(resultSet.getInt(7));
                     purposeDetailsDO.setthirdPartyName(resultSet.getString(8));
 
-                    PiiCategoryDO[] piiCategoryDOArr = getPersonalIdentifyCatForPurposeConf(resultSet.getInt(1)).toArray(new PiiCategoryDO[0]);
+                    PiiCategoryDO[] piiCategoryDOArr = getPersonalIdentifyCatForPurposeConf(resultSet.getInt(1))
+                            .toArray(new PiiCategoryDO[0]);
                     purposeDetailsDO.setpiiCategoryArr(piiCategoryDOArr);
                     purposeDetailsDOList.add(purposeDetailsDO);
                 }
@@ -1269,7 +1480,91 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 return piiCategoryDOList;
             } catch (SQLException e) {
                 throw new DataAccessException("Error occurred while getting the Personally Identifiable Info " +
-                        "Categories to the purpose configurations",e);
+                        "Categories to the purpose configurations", e);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<ServicesDO> getServicesForConf() throws DataAccessException {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+
+            String query = SQLQueries.servicesForConfQuery;
+
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                List<ServicesDO> servicesDOList = new ArrayList<>();
+                while (resultSet.next()) {
+                    ServicesDO servicesDO = new ServicesDO();
+                    servicesDO.setServiceId(resultSet.getInt(1));
+                    servicesDO.setServiceDescription(resultSet.getString(2));
+                    PurposeDetailsDO[] purposeDetailsDO = getPurposeDetailsForServiceConf(resultSet.getInt(1))
+                            .toArray(new PurposeDetailsDO[0]);
+                    servicesDO.setPurposeDetails(purposeDetailsDO);
+                    servicesDOList.add(servicesDO);
+                }
+                return servicesDOList;
+            } catch (SQLException e) {
+                throw new DataAccessException("Error occurred while getting the service details for the " +
+                        "configurations");
+            }
+        }
+        return null;
+    }
+
+    private List<PurposeDetailsDO> getPurposeDetailsForServiceConf(int serviceId) throws DataAccessException {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+
+            String query = SQLQueries.purposeDetailsForServiceConfQuery;
+
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, serviceId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                List<PurposeDetailsDO> purposeDetailsDOList = new ArrayList<>();
+                while (resultSet.next()) {
+                    PurposeDetailsDO purposeDetailsDO = new PurposeDetailsDO();
+                    purposeDetailsDO.setPurposeId(resultSet.getInt(2));
+                    purposeDetailsDO.setPurpose(resultSet.getString(3));
+                    purposeDetailsDOList.add(purposeDetailsDO);
+                }
+                return purposeDetailsDOList;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<ServicesDO> getServicesForUserView(String subjectName) throws DataAccessException {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+
+            String query = "SELECT DISTINCT A.SERVICE_ID,C.SERVICE_DESCRIPTION,B.PII_PRINCIPAL_ID\n" +
+                    "FROM SERVICE_MAP_CRID AS A,TRANSACTION_DETAILS AS B,SERVICES AS C\n" +
+                    "WHERE A.SGUID=B.SGUID\n" +
+                    "AND B.PII_PRINCIPAL_ID=?\n" +
+                    "AND A.SERVICE_ID=C.SERVICE_ID;";
+
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, subjectName);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                List<ServicesDO> servicesDOList = new ArrayList<>();
+                while (resultSet.next()) {
+                    ServicesDO servicesDO = new ServicesDO();
+                    servicesDO.setServiceId(resultSet.getInt(1));
+                    servicesDO.setServiceDescription(resultSet.getString(2));
+                    servicesDOList.add(servicesDO);
+                }
+                return servicesDOList;
+            } catch (SQLException e) {
+                throw new DataAccessException("Error occurred while getting the services for the user view");
             }
         }
         return null;

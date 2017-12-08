@@ -16,7 +16,7 @@ import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentRevokeListDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentDTO;
-import identity_user_consent_mgt_endpoint.dto.InlineResponse200DTO;
+import identity_user_consent_mgt_endpoint.dto.ServiceListDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceCRDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentByThirdPartyDTO;
@@ -150,11 +150,13 @@ public class ConsentApi  {
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation"),
         
-        @io.swagger.annotations.ApiResponse(code = 404, message = "content not found") })
+        @io.swagger.annotations.ApiResponse(code = 404, message = "content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
 
-    public Response consentConfigurationServiceGet(@ApiParam(value = "Details of a service" ,required=true ) ServiceInputDTO service)
+    public Response consentConfigurationServiceGet()
     {
-    return delegate.consentConfigurationServiceGet(service);
+    return delegate.consentConfigurationServiceGet();
     }
     @POST
     @Path("/configuration/service")
@@ -266,7 +268,7 @@ public class ConsentApi  {
     @Path("/{subjectName}/services")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Getting service details", notes = "Getting details of consented services by an user", response = InlineResponse200DTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Getting service details", notes = "Getting details of consented services by an user", response = ServiceListDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation"),
         
@@ -299,7 +301,7 @@ public class ConsentApi  {
     @Path("/{subjectName}/services/{serviceId}/purpose")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Getting details of a purpose", notes = "Getting details of a purpose of a service by subject name", response = PurposeDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Getting details of purposes", notes = "Getting details of purposes of a service by subject name", response = PurposeDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation"),
         

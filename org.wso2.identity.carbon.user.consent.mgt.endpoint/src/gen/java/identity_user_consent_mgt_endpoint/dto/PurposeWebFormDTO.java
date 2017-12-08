@@ -14,8 +14,23 @@ import javax.validation.constraints.NotNull;
 public class PurposeWebFormDTO  {
   
   
+  
+  private Integer purposeId = null;
+  
   @NotNull
   private String purposeName = null;
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("purposeId")
+  public Integer getPurposeId() {
+    return purposeId;
+  }
+  public void setPurposeId(Integer purposeId) {
+    this.purposeId = purposeId;
+  }
 
   
   /**
@@ -36,6 +51,7 @@ public class PurposeWebFormDTO  {
     StringBuilder sb = new StringBuilder();
     sb.append("class PurposeWebFormDTO {\n");
     
+    sb.append("  purposeId: ").append(purposeId).append("\n");
     sb.append("  purposeName: ").append(purposeName).append("\n");
     sb.append("}\n");
     return sb.toString();
