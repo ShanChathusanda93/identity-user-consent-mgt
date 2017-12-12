@@ -38,6 +38,22 @@ public class ConsentApi  {
 
    private final ConsentApiService delegate = ConsentApiServiceFactory.getConsentApi();
 
+    @GET
+    @Path("/configuration/dataController")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Getting data controller details", notes = "Getting data controller details by the id", response = DataControllerInputDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "internal server error") })
+
+    public Response consentConfigurationDataControllerGet(@ApiParam(value = "Id of the data controller to be get",required=true) @QueryParam("dataControllerId")  Integer dataControllerId)
+    {
+    return delegate.consentConfigurationDataControllerGet(dataControllerId);
+    }
     @POST
     @Path("/configuration/dataController")
     @Consumes({ "application/json" })
@@ -51,6 +67,20 @@ public class ConsentApi  {
     public Response consentConfigurationDataControllerPost(@ApiParam(value = "Details of the data controller" ,required=true ) DataControllerInputDTO dataController)
     {
     return delegate.consentConfigurationDataControllerPost(dataController);
+    }
+    @PUT
+    @Path("/configuration/dataController")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Updating the data controller details", notes = "Updating the data controller details of the consent database", response = void.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successfully updated the data controller"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "internal server error") })
+
+    public Response consentConfigurationDataControllerPut(@ApiParam(value = "Details of the data controller" ,required=true ) DataControllerInputDTO dataController)
+    {
+    return delegate.consentConfigurationDataControllerPut(dataController);
     }
     @GET
     @Path("/configuration/personalInfoCategory")
@@ -265,7 +295,7 @@ public class ConsentApi  {
     return delegate.consentSubjectNameReceiptGet(subjectName);
     }
     @GET
-    @Path("/{subjectName}/services")
+    @Path("/{subjectName}/serviceList")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Getting service details", notes = "Getting details of consented services by an user", response = ServiceListDTO.class)
@@ -276,9 +306,9 @@ public class ConsentApi  {
         
         @io.swagger.annotations.ApiResponse(code = 404, message = "services not found for this subject name") })
 
-    public Response consentSubjectNameServicesGet(@ApiParam(value = "User name to get the consent details to an user",required=true ) @PathParam("subjectName")  String subjectName)
+    public Response consentSubjectNameServiceListGet(@ApiParam(value = "User name to get the consent details to an user",required=true ) @PathParam("subjectName")  String subjectName)
     {
-    return delegate.consentSubjectNameServicesGet(subjectName);
+    return delegate.consentSubjectNameServiceListGet(subjectName);
     }
     @GET
     @Path("/{subjectName}/services/{serviceId}")

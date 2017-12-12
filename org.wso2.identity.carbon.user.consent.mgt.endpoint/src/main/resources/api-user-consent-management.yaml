@@ -100,7 +100,7 @@ paths:
         404:
           description: "consent not found"
 
-  /consent/{subjectName}/services:
+  /consent/{subjectName}/serviceList:
     get:
       summary: "Getting service details"
       description: "Getting details of consented services by an user"
@@ -168,6 +168,36 @@ paths:
       responses:
         201:
           description: "successfully created the data controller"
+        500:
+          description: "internal server error"
+
+    get:
+      summary: "Getting data controller details"
+      description: "Getting data controller details by the id"
+      tags:
+        - "Data Retrieval"
+      parameters:
+        - $ref: '#/parameters/dataControllerId'
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: '#/definitions/DataControllerInput'
+        404:
+          description: "content not found"
+        500:
+          description: "internal server error"
+
+    put:
+      summary: "Updating the data controller details"
+      description: "Updating the data controller details of the consent database"
+      tags:
+        - "Data Updates"
+      parameters:
+        - $ref: '#/parameters/dataController'
+      responses:
+        200:
+          description: "successfully updated the data controller"
         500:
           description: "internal server error"
 
@@ -525,6 +555,9 @@ definitions:
   DataControllerInput:
     type: "object"
     properties:
+      id:
+        type: "integer"
+        format: "int32"
       org:
         type: "string"
       contact:
@@ -633,7 +666,8 @@ definitions:
         items:
           $ref: '#/definitions/ServiceCR'
       sensitive:
-        type: "boolean"
+        type: "integer"
+        format: "int32"
       spiCat:
         type: "array"
         items:
@@ -755,6 +789,13 @@ definitions:
     required: [
       purposeId
     ]
+
+  DataControllerId:
+    type: "integer"
+    properties:
+      dataControllerId:
+        type: "integer"
+        format: "int32"
     
 parameters:
   subjectName:
@@ -850,3 +891,11 @@ parameters:
     required: true
     schema:
       $ref: '#/definitions/ConsentRevokeList'
+
+  dataControllerId:
+    name: "dataControllerId"
+    in: "query"
+    description: "Id of the data controller to be get"
+    required: true
+    type: "integer"
+    format: "int32"

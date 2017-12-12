@@ -15,6 +15,9 @@ import javax.validation.constraints.NotNull;
 public class DataControllerInputDTO  {
   
   
+  
+  private Integer id = null;
+  
   @NotNull
   private String org = null;
   
@@ -35,6 +38,18 @@ public class DataControllerInputDTO  {
   
   @NotNull
   private String policyUrl = null;
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("id")
+  public Integer getId() {
+    return id;
+  }
+  public void setId(Integer id) {
+    this.id = id;
+  }
 
   
   /**
@@ -127,6 +142,7 @@ public class DataControllerInputDTO  {
     StringBuilder sb = new StringBuilder();
     sb.append("class DataControllerInputDTO {\n");
     
+    sb.append("  id: ").append(id).append("\n");
     sb.append("  org: ").append(org).append("\n");
     sb.append("  contact: ").append(contact).append("\n");
     sb.append("  address: ").append(address).append("\n");

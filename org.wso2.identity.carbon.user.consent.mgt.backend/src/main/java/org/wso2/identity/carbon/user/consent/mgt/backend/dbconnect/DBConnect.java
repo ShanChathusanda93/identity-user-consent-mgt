@@ -2,6 +2,7 @@ package org.wso2.identity.carbon.user.consent.mgt.backend.dbconnect;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class DBConnect {
     String URL = "jdbc:mysql://localhost:3306/user_consent?useSSL=false";
@@ -18,6 +19,12 @@ public class DBConnect {
         } catch (Exception e) {
             System.out.println("Error :" + e);
             return false;
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 

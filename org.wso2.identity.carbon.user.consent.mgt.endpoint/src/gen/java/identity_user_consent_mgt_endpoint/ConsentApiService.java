@@ -26,7 +26,9 @@ import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import javax.ws.rs.core.Response;
 
 public abstract class ConsentApiService {
+    public abstract Response consentConfigurationDataControllerGet(Integer dataControllerId);
     public abstract Response consentConfigurationDataControllerPost(DataControllerInputDTO dataController);
+    public abstract Response consentConfigurationDataControllerPut(DataControllerInputDTO dataController);
     public abstract Response consentConfigurationPersonalInfoCategoryGet();
     public abstract Response consentConfigurationPersonalInfoCategoryPost(PiiCategoryDTO piiCategory);
     public abstract Response consentConfigurationPersonalInfoCategoryPut(PiiCategoryDTO piiCategory);
@@ -41,7 +43,7 @@ public abstract class ConsentApiService {
     public abstract Response consentRevokePut(ConsentRevokeListDTO revokingConsent);
     public abstract Response consentSubjectNameGet(String subjectName);
     public abstract Response consentSubjectNameReceiptGet(String subjectName);
-    public abstract Response consentSubjectNameServicesGet(String subjectName);
+    public abstract Response consentSubjectNameServiceListGet(String subjectName);
     public abstract Response consentSubjectNameServicesServiceIdGet(String subjectName,Integer serviceId);
     public abstract Response consentSubjectNameServicesServiceIdPurposeGet(String subjectName,Integer serviceId,Integer purposeId);
     public abstract Response consentSubjectNameThirdPartyGet(String subjectName,Integer thirdPartyId);

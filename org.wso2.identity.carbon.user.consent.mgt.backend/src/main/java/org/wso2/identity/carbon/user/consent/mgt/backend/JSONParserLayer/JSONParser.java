@@ -7,6 +7,8 @@ import io.jsonwebtoken.SignatureAlgorithm;*/
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.wso2.identity.carbon.user.consent.mgt.backend.DAO.ConsentDao;
+import org.wso2.identity.carbon.user.consent.mgt.backend.consentUtils.DateTimeUtil;
+import org.wso2.identity.carbon.user.consent.mgt.backend.consentUtils.UniqueIdUtil;
 import org.wso2.identity.carbon.user.consent.mgt.backend.constants.ConsentReceiptConstants;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
@@ -240,7 +242,7 @@ public class JSONParser {
         jsonObject.put(ConsentReceiptConstants.JURISDICTION, "DW"); //--This must be collected from the user's country
         jsonObject.put(ConsentReceiptConstants.CONSENT_TIMESTAMP, consentDO.getConsentTimestamp());
         jsonObject.put(ConsentReceiptConstants.COLLECTION_METHOD, consentDO.getCollectionMethod());
-        jsonObject.put(ConsentReceiptConstants.CONSENT_RECEIPT_ID, createUniqueId());
+        jsonObject.put(ConsentReceiptConstants.CONSENT_RECEIPT_ID, UniqueIdUtil.createUniqueId());
         jsonObject.put(ConsentReceiptConstants.PUBLIC_KEY, consentDO.getDataController().getPublicKey());
         jsonObject.put(ConsentReceiptConstants.SUBJECT, consentDO.getPiiPrincipalId());
         jsonObject.put(ConsentReceiptConstants.POLICY_URL, consentDO.getDataController().getPolicyUrl());
@@ -355,26 +357,26 @@ public class JSONParser {
         }
     }*/
 
-    private String createUniqueId() {
+    /*private String createUniqueId() {
         String uniqueId = UUID.randomUUID().toString();
         return uniqueId;
-    }
+    }*/
 
-    private String getCurrentDateTime() {
+    /*private String getCurrentDateTime() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         String currentTime = dateFormat.format(calendar.getTime());
         return currentTime;
-    }
+    }*/
 
-    public void readConsentFile() throws FileNotFoundException, DataAccessException {
+    public void readConsentFile(String consentString) throws DataAccessException {
         Gson gson = new Gson();
 
-        Reader reader = new FileReader("/home/shan/gdpr_project/financial-open-banking/consent-shanchathusanda@gmail" +
-                ".com.json");
+       /* Reader reader = new FileReader("/home/shan/gdpr_project/financial-open-banking/consent-shanchathusanda@gmail" +
+                ".com.json");*/
 
-        JSONObjectCreator objectCreator = gson.fromJson(reader, JSONObjectCreator.class);
+        JSONObjectCreator objectCreator = gson.fromJson(consentString, JSONObjectCreator.class);
         readConsentReceipt(objectCreator);
     }
 
@@ -387,8 +389,8 @@ public class JSONParser {
     private void readConsentReceipt(JSONObjectCreator objectCreator) throws DataAccessException {
         ConsentDao consentDao = new ConsentDao();
 
-        String uniqueId = createUniqueId();
-        String currentTime = getCurrentDateTime();
+        String uniqueId = UniqueIdUtil.createUniqueId();
+        String currentTime = DateTimeUtil.getCurrentDateTime();
 
         int dataControllerId = consentDao.isDataControllerExists(objectCreator.getDataController().getOrg());
 
@@ -440,12 +442,12 @@ public class JSONParser {
                         e.printStackTrace();
                     }
                     if (purposeId != 0) {
-                        int termination = consentDao.getPurposeTerminationDays(purposeId);
+                        /*int termination = consentDao.getPurposeTerminationDays(purposeId);
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
                         Calendar cal = Calendar.getInstance();
                         cal.setTime(new Date());
                         cal.add(Calendar.DATE, termination);
-                        purposeDO[j].setExactTermination(dateFormat.format(cal.getTime()));
+                        purposeDO[j].setExactTermination(dateFormat.format(cal.getTime()));*/
                         purposeDO[j].setPurposeId(purposeId);
                         purposeDO[j].setTimestamp(currentTime);
                         purposeDO[j].setCollectionMethod("Web-Form");

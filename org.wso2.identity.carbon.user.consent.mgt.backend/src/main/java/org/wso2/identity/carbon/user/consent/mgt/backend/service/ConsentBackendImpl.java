@@ -4,6 +4,7 @@ import org.json.simple.JSONObject;
 import org.wso2.identity.carbon.user.consent.mgt.backend.DAO.ConsentDao;
 import org.wso2.identity.carbon.user.consent.mgt.backend.JSONParserLayer.JSONParser;
 import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
@@ -72,5 +73,36 @@ public class ConsentBackendImpl implements ConsentBackend {
         ConsentDao consentDao=new ConsentDao();
         List<ServicesDO> servicesDOList=consentDao.getServiceDetailsByThirdParty(subjectName,thirdPartyId);
         return servicesDOList;
+    }
+
+    @Override
+    public void setDataController(DataControllerDO dataControllerDO) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.addDataController(dataControllerDO);
+    }
+
+    @Override
+    public DataControllerDO getDataController(int dataControllerId) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        DataControllerDO dataControllerDO=consentDao.getDataController(dataControllerId);
+        return dataControllerDO;
+    }
+
+    @Override
+    public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.addPiiCategory(piiCategoryDO);
+    }
+
+    @Override
+    public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.addPurposeDetails(purpose);
+    }
+
+    @Override
+    public void setService(ServicesDO service) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.addServiceDetails(service);
     }
 }

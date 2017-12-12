@@ -2,10 +2,12 @@ package identity_user_consent_mgt_endpoint.impl;
 
 import identity_user_consent_mgt_endpoint.ApiResponseMessage;
 import identity_user_consent_mgt_endpoint.ConsentApiService;
+import identity_user_consent_mgt_endpoint.dto.AddressCRDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentByThirdPartyDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentRevokeListDTO;
+import identity_user_consent_mgt_endpoint.dto.DataControllerIdDTO;
 import identity_user_consent_mgt_endpoint.dto.DataControllerInputDTO;
 import identity_user_consent_mgt_endpoint.dto.PiiCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeCategoryDTO;
@@ -20,6 +22,7 @@ import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
@@ -33,15 +36,55 @@ import java.util.List;
 
 public class ConsentApiServiceImpl extends ConsentApiService {
     private static ConsentBackend getConsentService() {
-
         return (ConsentBackend) PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .getOSGiService(ConsentBackend.class, null);
     }
 
     @Override
     public Response consentConfigurationDataControllerPost(DataControllerInputDTO dataController) {
-        // do some magic!
+        DataControllerDO dataControllerDO=new DataControllerDO();
+        dataControllerDO.setOrgName(dataController.getOrg());
+        dataControllerDO.setContactName(dataController.getContact());
+        dataControllerDO.setStreet(dataController.getAddress().getStreetAddress());
+        dataControllerDO.setCountry(dataController.getAddress().getAddressCountry());
+        dataControllerDO.setEmail(dataController.getEmail());
+        dataControllerDO.setPhoneNo(dataController.getPhone());
+        dataControllerDO.setPublicKey(dataController.getPublicKey());
+        dataControllerDO.setPolicyUrl(dataController.getPolicyUrl());
+
+        try {
+            getConsentService().setDataController(dataControllerDO);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+
+    @Override
+    public Response consentConfigurationDataControllerGet(Integer dataControllerId) {
+        DataControllerInputDTO dataControllerInputDTO=new DataControllerInputDTO();
+        try {
+            DataControllerDO dataControllerDO=getConsentService().getDataController(dataControllerId);
+            dataControllerInputDTO.setId(dataControllerDO.getDataControllerId());
+            dataControllerInputDTO.setOrg(dataControllerDO.getOrgName());
+            dataControllerInputDTO.setContact(dataControllerDO.getContactName());
+            AddressCRDTO address=new AddressCRDTO();
+            address.setStreetAddress(dataControllerDO.getStreet());
+            address.setAddressCountry(dataControllerDO.getCountry());
+            dataControllerInputDTO.setAddress(address);
+            dataControllerInputDTO.setEmail(dataControllerDO.getEmail());
+            dataControllerInputDTO.setPhone(dataControllerDO.getPhoneNo());
+            dataControllerInputDTO.setPublicKey(dataControllerDO.getPublicKey());
+            dataControllerInputDTO.setPolicyUrl(dataControllerDO.getPolicyUrl());
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(dataControllerInputDTO).build();
+    }
+
+    @Override
+    public Response consentConfigurationDataControllerPut(DataControllerInputDTO dataController) {
+        return null;
     }
 
     @Override
@@ -65,7 +108,15 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPersonalInfoCategoryPost(PiiCategoryDTO piiCategory) {
-        // do some magic!
+        PiiCategoryDO piiCategoryDO=new PiiCategoryDO();
+        piiCategoryDO.setPiiCat(piiCategory.getPiiCat());
+        piiCategoryDO.setPiiCatDescription(piiCategory.getDescription());
+        piiCategoryDO.setSensitivity(piiCategory.getSensitivity());
+        try {
+            getConsentService().setPersonalInfoCat(piiCategoryDO);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
@@ -121,7 +172,17 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPurposePost(PurposeInputDTO purpose) {
-        // do some magic!
+        PurposeDetailsDO purposeDetailsDO=new PurposeDetailsDO();
+        purposeDetailsDO.setPurpose(purpose.getPurpose());
+        purposeDetailsDO.setPrimaryPurpose(String.valueOf(purpose.getPrimaryPurpose()));
+        purposeDetailsDO.setTermination(String.valueOf(purpose.getTermination()));
+        purposeDetailsDO.setThirdPartyDis(String.valueOf(purpose.getThirdPartyDisclosure()));
+        purposeDetailsDO.setThirdPartyId(purpose.getThirdPartyId());
+        try {
+            getConsentService().setPurpose(purposeDetailsDO);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
@@ -159,7 +220,13 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationServicePost(ServiceInputDTO service) {
-        // do some magic!
+        ServicesDO servicesDO=new ServicesDO();
+        servicesDO.setServiceDescription(service.getServiceName());
+        try {
+            getConsentService().setService(servicesDO);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
@@ -208,7 +275,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     }
 
     @Override
-    public Response consentSubjectNameServicesGet(String subjectName) {
+    public Response consentSubjectNameServiceListGet(String subjectName) {
         ServiceListDTO serviceListDTO=new ServiceListDTO();
         List<ServiceCRDTO> serviceCRDTOList = new ArrayList<>();
         try {
@@ -217,13 +284,46 @@ public class ConsentApiServiceImpl extends ConsentApiService {
                 ServiceCRDTO serviceCRDTO = new ServiceCRDTO();
                 serviceCRDTO.setServiceId(servicesDOList.get(i).getServiceId());
                 serviceCRDTO.setServiceName(servicesDOList.get(i).getServiceDescription());
+
+                List<PurposeDTO> purposeDTOList=new ArrayList<>();
+                for (PurposeDetailsDO purpose:servicesDOList.get(i).getPurposeDetailsArr()){
+                    PurposeDTO purposeDTO=new PurposeDTO();
+                    purposeDTO.setPurposeId(purpose.getPurposeId());
+                    purposeDTO.setPurpose(purpose.getPurpose());
+
+                    List<PurposeCategoryDTO> purposeCategoryDTOList=new ArrayList<>();
+                    for (PurposeCategoryDO purposeCategoryDO:purpose.getPurposeCategoryDOArr()){
+                        PurposeCategoryDTO purposeCategoryDTO=new PurposeCategoryDTO();
+                        purposeCategoryDTO.setPurposeCategoryId(purposeCategoryDO.getPurposeCatId());
+                        purposeCategoryDTO.setPurposeCategoryShortCode(purposeCategoryDO.getPurposeCatShortCode());
+                        purposeCategoryDTOList.add(purposeCategoryDTO);
+                    }
+                    purposeDTO.setPurposeCategory(purposeCategoryDTOList);
+                    purposeDTO.setConsentType(purpose.getConsentType());
+
+                    List<PiiCategoryDTO> piiCategoryDTOList=new ArrayList<>();
+                    for(PiiCategoryDO piiCategoryDO:purpose.getpiiCategoryArr()){
+                        PiiCategoryDTO piiCategoryDTO=new PiiCategoryDTO();
+                        piiCategoryDTO.setPiiCatId(piiCategoryDO.getPiiCatId());
+                        piiCategoryDTO.setPiiCat(piiCategoryDO.getPiiCat());
+                        piiCategoryDTO.setSensitivity(piiCategoryDO.getSensitivity());
+                        piiCategoryDTOList.add(piiCategoryDTO);
+                    }
+                    purposeDTO.setPiiCategory(piiCategoryDTOList);
+                    purposeDTO.setPrimaryPurpose(Integer.valueOf(purpose.getPrimaryPurpose()));
+                    purposeDTO.setTermination(purpose.getTermination());
+                    purposeDTO.setThirdPartyDisclosure(Integer.valueOf(purpose.getThirdPartyDis()));
+                    purposeDTO.setThirdPartyName(purpose.getThirdPartyName());
+                    purposeDTOList.add(purposeDTO);
+                }
+                serviceCRDTO.setPurposes(purposeDTOList);
                 serviceCRDTOList.add(serviceCRDTO);
             }
             serviceListDTO.setServiceList(serviceCRDTOList);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
-        return Response.ok().entity(serviceListDTO).build();
+        return Response.ok().entity(serviceCRDTOList).build();
     }
 
     @Override

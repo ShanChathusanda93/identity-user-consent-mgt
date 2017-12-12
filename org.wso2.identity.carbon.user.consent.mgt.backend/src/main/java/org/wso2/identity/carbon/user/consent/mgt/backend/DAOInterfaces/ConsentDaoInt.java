@@ -13,7 +13,7 @@ public interface ConsentDaoInt {
 
     public void addUserConsentDetails(ConsentDO consent, ServicesDO[] services) throws DataAccessException;
 
-    public ConsentDO getSGUIDByUser(String piiPrincipalId);
+    public ConsentDO getSGUIDByUser(String piiPrincipalId) throws DataAccessException;
 
     public ServicesDO getServicesByUserByServiceId(String piiPrincipalId, int serviceId) throws DataAccessException;
 

@@ -2,6 +2,7 @@ package org.wso2.identity.carbon.user.consent.mgt.backend.service;
 
 import org.json.simple.JSONObject;
 import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
@@ -21,4 +22,9 @@ public interface ConsentBackend {
             throws DataAccessException;
     public List<ServicesDO> getServicesByUserByThirdParty(String subjectName,int thirdPartyId) throws
             DataAccessException;
+    public void setDataController(DataControllerDO dataControllerDO) throws DataAccessException;
+    public DataControllerDO getDataController(int dataControllerId) throws DataAccessException;
+    public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
+    public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException;
+    public void setService(ServicesDO service) throws DataAccessException;
 }

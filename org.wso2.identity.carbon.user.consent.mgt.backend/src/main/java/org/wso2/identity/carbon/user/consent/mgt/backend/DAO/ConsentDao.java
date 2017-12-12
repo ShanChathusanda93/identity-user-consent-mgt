@@ -1,9 +1,9 @@
 package org.wso2.identity.carbon.user.consent.mgt.backend.DAO;
 
-import jdk.nashorn.internal.ir.WhileNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.identity.carbon.user.consent.mgt.backend.DAOInterfaces.MainDaoInt;
+import org.wso2.identity.carbon.user.consent.mgt.backend.consentUtils.DBUtils;
 import org.wso2.identity.carbon.user.consent.mgt.backend.constants.SQLQueries;
 import org.wso2.identity.carbon.user.consent.mgt.backend.dbconnect.DBConnect;
 import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
@@ -18,6 +18,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -46,21 +47,18 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public ConsentDao(String piiPrincipalId) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection con = dbConnect.getConnection();
-            String piiPrincipal = piiPrincipalId;
-            String query = "SELECT A.COLLECTION_METHOD,A.SGUID,A.PII_PRINCIPAL_ID,A.CONSENT_TIMESTAMP," +
-                    "B.DATA_CONTROLLER_ID,B.ORGANIZATION_NAME,B.CONTACT_NAME,B.STREET,B.COUNTRY,B.EMAIL,B.PHONE_NUMBER," +
-                    "B.PUBLIC_KEY,B.POLICY_URL FROM user_consent.TRANSACTION_DETAILS AS A," +
-                    "user_consent.DATA_CONTROLLER AS B WHERE A.PII_PRINCIPAL_ID=? " +
-                    "AND A.DATA_CONTROLLER_ID=B.DATA_CONTROLLER_ID";
+            PreparedStatement preparedStatement = null;
+            ResultSet rs = null;
+
+            String query = SQLQueries.TRANSACTION_AND_DATA_CONTROLLER_DETAILS_QUERY;
             try {
                 ConsentDO consentDO;
                 DataControllerDO dataController;
                 consents = new ArrayList<ConsentDO>();
 
-                PreparedStatement preparedStatement = con.prepareStatement(query);
-                preparedStatement.setString(1, piiPrincipal);
-
-                ResultSet rs = preparedStatement.executeQuery();
+                preparedStatement = con.prepareStatement(query);
+                preparedStatement.setString(1, piiPrincipalId);
+                rs = preparedStatement.executeQuery();
 
                 while (rs.next()) {
                     dataController = new DataControllerDO(rs.getInt(5), rs.getString(6), rs.getString(7),
@@ -71,59 +69,36 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                     consents.add(consentDO);
                 }
             } catch (SQLException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while getting the user details : " + e);
-                }
-                throw new DataAccessException("Error occurred while getting the user details", e);
+                log.error("Database error. Could not get the user and data controller details. - " + e.getMessage(), e);
+                throw new DataAccessException("Database error. Could not get the user and data controller details. - " +
+                        "" + e.getMessage(), e);
+            } finally {
+                DBUtils.closeAllConnections(con, preparedStatement, rs);
             }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Can't establish a connection with the database");
-            }
-            log.info("Log update - Can't establish a connection with the database");
         }
     }
 
     /**
      * This constructor gets the services and purposes for one user
      *
-     * @param SGUID
+     * @param sguid
      * @param dummy
      * @throws DataAccessException
      */
-    public ConsentDao(String SGUID, boolean dummy) throws DataAccessException {
+    public ConsentDao(String sguid, boolean dummy) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection con = dbConnect.getConnection();
-            String sguid = SGUID;
+            PreparedStatement preparedStatement = null;
+            ResultSet rs = null;
 
-            String query = "SELECT A.SGUID,A.SERVICE_ID,\n" +
-                    "B.SERVICE_DESCRIPTION,\n" +
-                    "A.PURPOSE_ID,\n" +
-                    "C.PURPOSE,C.PRIMARY_PURPOSE,C.TERMINATION,C.THIRD_PARTY_DIS,C.THIRD_PARTY_ID,\n" +
-                    "D.THIRD_PARTY_NAME,\n" +
-                    "E.PII_CAT_ID,\n" +
-                    "F.PII_CAT,F.SENSITIVITY\n" +
-                    "FROM user_consent.SERVICE_MAP_CRID AS A,\n" +
-                    "user_consent.SERVICES AS B,\n" +
-                    "user_consent.PURPOSES AS C,\n" +
-                    "user_consent.THIRD_PARTY AS D,\n" +
-                    "user_consent.PURPOSE_MAP_PII_CAT AS E,\n" +
-                    "user_consent.PII_CATEGORY AS F\n" +
-                    "WHERE SGUID=?\n" +
-                    "AND A.STATUS='Approved'\n" +
-                    "AND A.SERVICE_ID=B.SERVICE_ID\n" +
-                    "AND A.PURPOSE_ID=C.PURPOSE_ID\n" +
-                    "AND C.THIRD_PARTY_ID=D.THIRD_PARTY_ID\n" +
-                    "AND C.PURPOSE_ID=E.PURPOSE_ID\n" +
-                    "AND E.PII_CAT_ID=F.PII_CAT_ID;";
-
+            String query = SQLQueries.SERVICES_DETAILS_BY_USER_QUERY;
             try {
                 ServicesDO services;
                 serviceList = new ArrayList<ServicesDO>();
 
-                PreparedStatement preparedStatement = con.prepareStatement(query);
+                preparedStatement = con.prepareStatement(query);
                 preparedStatement.setString(1, sguid);
-                ResultSet rs = preparedStatement.executeQuery();
+                rs = preparedStatement.executeQuery();
 
                 PurposeDetailsDO purpose;
                 PiiCategoryDO piiCategory;
@@ -137,64 +112,37 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                     serviceList.add(services);
                 }
             } catch (SQLException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while getting the org.wso2.identity.carbon.user.consent.mgt.backend.constants.service details to the user : " + sguid + " - " + e);
-                }
-                throw new DataAccessException("Error occurred while getting the org.wso2.identity.carbon.user.consent.mgt.backend.constants.service details to the user : " + sguid,
-                        e);
+                log.error("Database error. Could not get consent details for the user. - " + e.getMessage(), e);
+                throw new DataAccessException("Database error. Could not get service details for the user. - " + e.getMessage(), e);
+            } finally {
+                DBUtils.closeAllConnections(con, preparedStatement, rs);
             }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug(
-                        "Log update - Can't establish a connection with the database to get the org.wso2.identity.carbon.user.consent.mgt.backend.constants.service details to user : "
-                                + SGUID);
-            }
-            log.info("Log update - Can't establish a connection with the database to get the org.wso2.identity.carbon.user.consent.mgt.backend.constants.service details to user : "
-                    + SGUID);
         }
     }
 
     /**
      * This constructor gets the services and purposes by third party for one user
      *
-     * @param SGUID
+     * @param sguid
      * @param thirdPartyId
      * @throws DataAccessException
      */
-    public ConsentDao(String SGUID, String thirdPartyId) throws DataAccessException {
+    public ConsentDao(String sguid, int thirdPartyId) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection con = dbConnect.getConnection();
+            PreparedStatement preparedStatement = null;
+            ResultSet rs = null;
 
-            String query = "SELECT A.SGUID,A.SERVICE_ID,\n" +
-                    "B.SERVICE_DESCRIPTION,\n" +
-                    "A.PURPOSE_ID,\n" +
-                    "C.PURPOSE,C.PRIMARY_PURPOSE,C.TERMINATION,C.THIRD_PARTY_DIS,C.THIRD_PARTY_ID,\n" +
-                    "D.THIRD_PARTY_NAME,\n" +
-                    "E.PII_CAT_ID,\n" +
-                    "F.PII_CAT,F.SENSITIVITY\n" +
-                    "FROM user_consent.SERVICE_MAP_CRID AS A,\n" +
-                    "user_consent.SERVICES AS B,\n" +
-                    "user_consent.PURPOSES AS C,\n" +
-                    "user_consent.THIRD_PARTY AS D,\n" +
-                    "user_consent.PURPOSE_MAP_PII_CAT AS E,\n" +
-                    "user_consent.PII_CATEGORY AS F\n" +
-                    "WHERE SGUID=?\n" +
-                    "AND C.THIRD_PARTY_ID=?\n" +
-                    "AND A.STATUS='Approved'\n" +
-                    "AND A.SERVICE_ID=B.SERVICE_ID\n" +
-                    "AND A.PURPOSE_ID=C.PURPOSE_ID\n" +
-                    "AND C.THIRD_PARTY_ID=D.THIRD_PARTY_ID\n" +
-                    "AND C.PURPOSE_ID=E.PURPOSE_ID\n" +
-                    "AND E.PII_CAT_ID=F.PII_CAT_ID;";
+            String query = SQLQueries.SERVICE_DETAILS_BY_USER_AND_THIRD_PARTY_QUERY;
             try {
                 ServicesDO services;
                 PiiCategoryDO piiCategory;
                 serviceList = new ArrayList<ServicesDO>();
 
-                PreparedStatement preparedStatement = con.prepareStatement(query);
-                preparedStatement.setString(1, SGUID);
-                preparedStatement.setString(2, thirdPartyId);
-                ResultSet rs = preparedStatement.executeQuery();
+                preparedStatement = con.prepareStatement(query);
+                preparedStatement.setString(1, sguid);
+                preparedStatement.setInt(2, thirdPartyId);
+                rs = preparedStatement.executeQuery();
 
                 rs.last();
                 PurposeDetailsDO[] purposeDetails = new PurposeDetailsDO[rs.getRow()];
@@ -212,50 +160,43 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                     i++;
                 }
             } catch (SQLException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while getting the details to user :" + SGUID + "by third party.\n" + e);
-                }
+                log.error("Database error. Could not get consent details for the user and third party. - " + e
+                        .getMessage(), e);
                 throw new DataAccessException(
-                        "Error occurred while getting the details to user :" + SGUID + "by third party", e);
+                        "Database error. Could not get consent details for the user and third party. - " + e.getMessage
+                                (), e);
+            } finally {
+                DBUtils.closeAllConnections(con, preparedStatement, rs);
             }
-        } else {
-            if (log.isDebugEnabled()) {
-                System.out.println("Error occurred while getting the details to user :" + SGUID + "by third party.");
-            }
-            log.info("Error occurred while getting the details to user : " + SGUID + "by third party.");
         }
     }
 
-    public List<ServicesDO> getServiceDetailsByThirdParty(String subjectName,int thirdPartyId){
-        ConsentDao consentDao=new ConsentDao();
-        ConsentDO user=consentDao.getSGUIDByUser(subjectName);
-        if(dbConnect.connect()){
-            Connection connection=dbConnect.getConnection();
+    /*This method is for get consent details for a user by third party. Previous constructor is also for the same purpose*/
+    public List<ServicesDO> getServiceDetailsByThirdParty(String subjectName, int thirdPartyId) throws DataAccessException {
+        ConsentDao consentDao = new ConsentDao();
+        ConsentDO user = consentDao.getSGUIDByUser(subjectName);
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement = null;
+            ResultSet resultSet = null;
 
-            String query="SELECT DISTINCT C.PII_PRINCIPAL_ID,A.SERVICE_ID,D.SERVICE_DESCRIPTION,B.THIRD_PARTY_ID\n" +
-                    "FROM SERVICE_MAP_CRID AS A,PURPOSES AS B,TRANSACTION_DETAILS AS C,SERVICES AS D\n" +
-                    "WHERE A.SGUID=?\n" +
-                    "AND A.PURPOSE_ID=B.PURPOSE_ID\n" +
-                    "AND A.SGUID=C.SGUID\n" +
-                    "AND A.SERVICE_ID=D.SERVICE_ID\n" +
-                    "AND B.THIRD_PARTY_ID=?;";
-
+            String query = SQLQueries.CONSENT_DETAILS_BY_USER_BY_THIRD_PARTY_QUERY;
             try {
-                PreparedStatement preparedStatement=connection.prepareStatement(query);
-                preparedStatement.setString(1,user.getSGUID());
-                preparedStatement.setInt(2,thirdPartyId);
-                ResultSet resultSet=preparedStatement.executeQuery();
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, user.getSGUID());
+                preparedStatement.setInt(2, thirdPartyId);
+                resultSet = preparedStatement.executeQuery();
 
-                List<ServicesDO> servicesDOList=new ArrayList<>();
-                while (resultSet.next()){
-                    ServicesDO servicesDO=new ServicesDO();
+                List<ServicesDO> servicesDOList = new ArrayList<>();
+                while (resultSet.next()) {
+                    ServicesDO servicesDO = new ServicesDO();
                     servicesDO.setServiceId(resultSet.getInt(2));
                     servicesDO.setServiceDescription(resultSet.getString(3));
-                    List<Integer> purposeIdList=getPurposeIdByUserByServiceByThirdParty(user.getSGUID(),resultSet
-                            .getInt(2),thirdPartyId);
-                    List<PurposeDetailsDO> purposeDetailsDOList=new ArrayList<>();
-                    for(int i=0;i<purposeIdList.size();i++){
-                        PurposeDetailsDO purposeDetailsDO=getPurposeDetailsByPurposeId(purposeIdList.get(i));
+                    List<Integer> purposeIdList = getPurposeIdByUserByServiceByThirdParty(user.getSGUID(), resultSet
+                            .getInt(2), thirdPartyId);
+                    List<PurposeDetailsDO> purposeDetailsDOList = new ArrayList<>();
+                    for (int i = 0; i < purposeIdList.size(); i++) {
+                        PurposeDetailsDO purposeDetailsDO = getPurposeDetailsByPurposeId(purposeIdList.get(i));
                         purposeDetailsDOList.add(purposeDetailsDO);
                     }
                     servicesDO.setPurposeDetails(purposeDetailsDOList.toArray(new PurposeDetailsDO[0]));
@@ -263,37 +204,43 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return servicesDOList;
             } catch (SQLException e) {
-                System.out.println("err");
+                log.error("Database error. Could not get consent details for the user and third party. - " + e
+                        .getMessage(), e);
+                throw new DataAccessException("Database error. Could not get consent details for the user and third party. - " + e
+                        .getMessage(), e);
+            } finally {
+                DBUtils.closeAllConnections(connection, preparedStatement, resultSet);
             }
         }
         return null;
     }
 
-    private List<Integer> getPurposeIdByUserByServiceByThirdParty(String sguid, int serviceId, int thirdPartyId){
-        if(dbConnect.connect()){
-            Connection connection=dbConnect.getConnection();
+    private List<Integer> getPurposeIdByUserByServiceByThirdParty(String sguid, int serviceId, int thirdPartyId) throws DataAccessException {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement = null;
+            ResultSet resultSet = null;
 
-            String query="SELECT A.SGUID,A.SERVICE_ID,A.PURPOSE_ID,B.THIRD_PARTY_ID\n" +
-                    "FROM SERVICE_MAP_CRID AS A,PURPOSES AS B\n" +
-                    "WHERE A.SERVICE_ID=?\n" +
-                    "AND A.SGUID=?\n" +
-                    "AND B.THIRD_PARTY_ID=?\n" +
-                    "AND A.PURPOSE_ID=B.PURPOSE_ID;";
+            String query = SQLQueries.PURPOSE_ID_BY_USER_BY_SERVICE_BY_THIRD_PARTY_QUERY;
 
             try {
-                PreparedStatement preparedStatement=connection.prepareStatement(query);
-                preparedStatement.setInt(1,serviceId);
-                preparedStatement.setString(2,sguid);
-                preparedStatement.setInt(3,thirdPartyId);
-                ResultSet resultSet=preparedStatement.executeQuery();
-                List<Integer> purposeIdList=new ArrayList<>();
-                while (resultSet.next()){
-                    int i=resultSet.getInt(3);
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, serviceId);
+                preparedStatement.setString(2, sguid);
+                preparedStatement.setInt(3, thirdPartyId);
+                resultSet = preparedStatement.executeQuery();
+                List<Integer> purposeIdList = new ArrayList<>();
+                while (resultSet.next()) {
+                    int i = resultSet.getInt(3);
                     purposeIdList.add(i);
                 }
                 return purposeIdList;
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.error("Database error. Could not get purpose IDs for services. - " + e.getMessage(), e);
+                throw new DataAccessException("Database error. Could not get purpose IDs for services. - " + e
+                        .getMessage(), e);
+            } finally {
+                DBUtils.closeAllConnections(connection, preparedStatement, resultSet);
             }
         }
         return null;
@@ -306,23 +253,28 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
      * @return
      */
     @Override
-    public ConsentDO getSGUIDByUser(String piiPrincipalId) {
+    public ConsentDO getSGUIDByUser(String piiPrincipalId) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection con = dbConnect.getConnection();
+            PreparedStatement preparedStatement = null;
+            ResultSet resultSet = null;
 
-            String query = "SELECT A.SGUID,A.PII_PRINCIPAL_ID FROM TRANSACTION_DETAILS AS A WHERE A" +
-                    ".PII_PRINCIPAL_ID=?;";
+            String query = "SELECT A.SGUID,A.PII_PRINCIPAL_ID FROM TRANSACTION_DETAILS AS A WHERE A.PII_PRINCIPAL_ID=?;";
             try {
-                PreparedStatement preparedStatement = con.prepareStatement(query);
+                preparedStatement = con.prepareStatement(query);
                 preparedStatement.setString(1, piiPrincipalId);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
 
                 ConsentDO consentDO = new ConsentDO();
                 resultSet.next();//--Taking the cursor to the first result row
                 consentDO.setSGUID(resultSet.getString(1));
                 return consentDO;
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.error("Database error. Could not get system generated UID for the user. - " + e.getMessage(), e);
+                throw new DataAccessException("Database error. Could not get system generated UID for the user. - " + e
+                        .getMessage(), e);
+            } finally {
+                DBUtils.closeAllConnections(con, preparedStatement, resultSet);
             }
         }
         return null;
@@ -338,32 +290,31 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public void addUserAndDataControllerDetails(ConsentDO consentDO) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection con = dbConnect.getConnection();
+            PreparedStatement preparedStatement = null;
 
-            ConsentDO consentInput = consentDO;
-
-            String query = "INSERT INTO TRANSACTION_DETAILS\n" +
-                    "VALUES (?,?,?,?,?);";
+            String query = "INSERT INTO TRANSACTION_DETAILS VALUES (?,?,?,?,?);";
             try {
-                PreparedStatement preparedStatement = con.prepareStatement(query);
-                preparedStatement.setString(1, consentInput.getCollectionMethod());
-                preparedStatement.setString(2, consentInput.getSGUID());
-                preparedStatement.setString(3, consentInput.getPiiPrincipalId());
-                preparedStatement.setString(4, consentInput.getConsentTimestamp());
-                preparedStatement.setInt(5, consentInput.getDataController().getDataControllerId());
+                preparedStatement = con.prepareStatement(query);
+                preparedStatement.setString(1, consentDO.getCollectionMethod());
+                preparedStatement.setString(2, consentDO.getSGUID());
+                preparedStatement.setString(3, consentDO.getPiiPrincipalId());
+                preparedStatement.setString(4, consentDO.getConsentTimestamp());
+                preparedStatement.setInt(5, consentDO.getDataController().getDataControllerId());
                 preparedStatement.executeUpdate();
 
-                log.info("Successfully added the pii principal to the database");
+                log.info("Successfully added the user " + consentDO.getPiiPrincipalId() + " to the database");
             } catch (SQLException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while inserting user to the database");
-                }
-                throw new DataAccessException("Error occurred while inserting user to the database", e);
+                log.error("Database error. Could not add the user to the database. - " + e.getMessage(), e);
+                throw new DataAccessException("Database error. Could not add the user to the database. - " + e
+                        .getMessage(), e);
+            } finally {
+                DBUtils.closeAllConnections(con, preparedStatement);
             }
         }
     }
 
     /**
-     * This method adds services and purposes that the user gives permission
+     * This method adds services and purposes that the user gave permission
      *
      * @param consentDO
      * @param services
@@ -373,54 +324,56 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public void addUserConsentDetails(ConsentDO consentDO, ServicesDO[] services) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement = null;
 
             for (int j = 0; j < services.length; j++) {
                 for (int i = 0; i < services[j].getPurposeDetailsArr().length; i++) {
                     String query = "INSERT INTO SERVICE_MAP_CRID (SGUID,SERVICE_ID,PURPOSE_ID,EXACT_TERMINATION," +
                             "CONSENT_TIME,COLLECTION_METHOD,STATUS) VALUES (?,?,?,?,?,?,?);";
                     try {
-                        PreparedStatement preparedStatement = connection.prepareStatement(query);
+                        preparedStatement = connection.prepareStatement(query);
                         preparedStatement.setString(1, consentDO.getSGUID());
                         preparedStatement.setInt(2, services[j].getServiceId());
                         preparedStatement.setInt(3, services[j].getPurposeDetailsArr()[i].getPurposeId());
-                        preparedStatement.setString(4, services[j].getPurposeDetailsArr()[i].getExactTermination());
+                        preparedStatement.setString(4, getPurposeTerminationDays(services[j].getPurposeDetailsArr()
+                                [i].getPurposeId(), services[j].getPurposeDetailsArr()[i].getTimestamp()));
                         preparedStatement.setString(5, services[j].getPurposeDetailsArr()[i].getTimestamp());
                         preparedStatement.setString(6, services[j].getPurposeDetailsArr()[i]
                                 .getCollectionMethod());
                         preparedStatement.setString(7, "Approved");
                         preparedStatement.executeUpdate();
+                        log.info("Successfully added the user consents of the " + consentDO.getPiiPrincipalId()
+                                + " to the database");
                     } catch (SQLException e) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Error occurred while inserting " + consentDO.getPiiPrincipalId()
-                                    + " user consents to the database");
-                        }
+                        log.error("Database error. Could not add consents for the user to the database. - " + e
+                                .getMessage(), e);
                         deletePiiPrincipal(consentDO);
-                        throw new DataAccessException("Error occurred while inserting " + consentDO.getPiiPrincipalId()
-                                + " user consents to the database", e);
+                        throw new DataAccessException("Database error. Could not add consents for the user to the " +
+                                "database. - " + e.getMessage(), e);
+                    } finally {
+                        DBUtils.closeAllConnections(connection, preparedStatement);
                     }
                 }
             }
-            log.info("Successfully added the user consents of the " + consentDO.getPiiPrincipalId()
-                    + " to the database");
         }
     }
 
     private void deletePiiPrincipal(ConsentDO consentDO) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement = null;
 
-            String query = "DELETE FROM user_consent.TRANSACTION_DETAILS\n" +
-                    "WHERE SGUID=?;";
-
+            String query = "DELETE FROM user_consent.TRANSACTION_DETAILS WHERE SGUID=?;";
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, consentDO.getSGUID());
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
                 log.error("Error occurred while deleting the subject from the database", e);
                 throw new DataAccessException("Error occurred while deleting the subject from the database");
+            } finally {
+                DBUtils.closeAllConnections(connection, preparedStatement);
             }
-
         }
     }
 
@@ -436,19 +389,12 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement = null;
 
-            String query = "UPDATE user_consent.SERVICE_MAP_CRID" +
-                    "SET STATUS='Revoked'," +
-                    "COLLECTION_METHOD=?," +
-                    "CONSENT_TIME=?," +
-                    "EXACT_TERMINATION=''" +
-                    "CONSENT_TYPE=?" +
-                    "WHERE SGUID=?" +
-                    "AND SERVICE_ID=?" +
-                    "AND PURPOSE_ID=?";
-            for (ServicesDO service : serviceList) {
-                try {
-                    PreparedStatement preparedStatement = connection.prepareStatement(query);
+            String query = SQLQueries.USER_CONSENT_DETAILS_UPDATE_QUERY;
+            try {
+                for (ServicesDO service : serviceList) {
+                    preparedStatement = connection.prepareStatement(query);
                     preparedStatement.setString(1, service.getPurposeDetails().getCollectionMethod());
                     preparedStatement.setString(2, service.getPurposeDetails().getTimestamp());
                     preparedStatement.setString(3, service.getPurposeDetails().getConsentType());
@@ -456,10 +402,14 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                     preparedStatement.setInt(5, service.getServiceId());
                     preparedStatement.setInt(6, service.getPurposeDetails().getPurposeId());
                     preparedStatement.executeUpdate();
-                } catch (SQLException e) {
-                    log.error("Error occurred while updating the consent", e);
-                    throw new DataAccessException("Error occurred while updating the consent.");
                 }
+                log.info("Successfully updated the consent details to the database");
+            } catch (SQLException e) {
+                log.error("Database error. Could not update consent details to the database. - "+e.getMessage(), e);
+                throw new DataAccessException("Database error. Could not update consent details to the database. - " +
+                        ""+e.getMessage(), e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -539,28 +489,24 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
         return null;
     }
 
-    public ServicesDO getServiceByUserByServiceIdDemo(String subjectName, int serviceId) {
+    public ServicesDO getServiceByUserByServiceIdDemo(String subjectName, int serviceId) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
             ConsentDao consentDao = new ConsentDao();
             ConsentDO consentDO = consentDao.getSGUIDByUser(subjectName);
 
-            String query = "SELECT A.SGUID,A.SERVICE_ID,B.SERVICE_DESCRIPTION,A.PURPOSE_ID,A.STATUS\n" +
-                    "FROM SERVICE_MAP_CRID AS A,SERVICES AS B\n" +
-                    "WHERE A.SGUID=?\n" +
-                    "AND A.STATUS=\"Approved\"\n" +
-                    "AND A.SERVICE_ID=?\n" +
-                    "AND A.SERVICE_ID=B.SERVICE_ID;";
-
+            String query = SQLQueries.SERVICE_BY_USER_BY_SERVICE_ID_DEMO_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, consentDO.getSGUID());
                 preparedStatement.setInt(2, serviceId);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 List<PurposeDetailsDO> purposeDetailsDOList = new ArrayList<>();
                 while (resultSet.next()) {
-                    PurposeDetailsDO purposeDetailsDO=getPurposeDetailsByPurposeId(resultSet.getInt(4));
+                    PurposeDetailsDO purposeDetailsDO = getPurposeDetailsByPurposeId(resultSet.getInt(4));
                     purposeDetailsDOList.add(purposeDetailsDO);
                 }
                 resultSet.first();
@@ -570,26 +516,30 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 servicesDO.setPurposeDetails(purposeDetailsDOList.toArray(new PurposeDetailsDO[0]));
                 return servicesDO;
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.error("Database error. Could not get services for the user. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get services for the user. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
     }
 
-    private PurposeDetailsDO getPurposeDetailsByPurposeId(int purposeId) {
+    private PurposeDetailsDO getPurposeDetailsByPurposeId(int purposeId) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
             String query = "SELECT A.*,B.THIRD_PARTY_NAME FROM PURPOSES AS A,THIRD_PARTY AS B WHERE PURPOSE_ID=? AND " +
                     "A.THIRD_PARTY_ID=B.THIRD_PARTY_ID;";
-
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setInt(1, purposeId);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
+                resultSet.first();
 
                 PurposeDetailsDO purposeDetailsDO = new PurposeDetailsDO();
-                resultSet.first();
                 purposeDetailsDO.setPurposeId(resultSet.getInt(1));
                 purposeDetailsDO.setPurpose(resultSet.getString(2));
                 purposeDetailsDO.setPrimaryPurpose(String.valueOf(resultSet.getInt(4)));
@@ -602,15 +552,15 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                         (new PurposeCategoryDO[0]);
                 purposeDetailsDO.setPurposeCategoryDOArr(purposeCategoryDOArr);
 
-                PiiCategoryDO[] piiCategoryDOArr= getPersonalIdentifyCatForPurposeConf(resultSet.getInt(1)).toArray
+                PiiCategoryDO[] piiCategoryDOArr = getPersonalIdentifyCatForPurposeConf(resultSet.getInt(1)).toArray
                         (new PiiCategoryDO[0]);
                 purposeDetailsDO.setpiiCategoryArr(piiCategoryDOArr);
                 return purposeDetailsDO;
-
             } catch (SQLException e) {
-                e.printStackTrace();
-            } catch (DataAccessException e) {
-                e.printStackTrace();
+                log.error("Database error. Could not get purpose. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get purpose. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -643,51 +593,32 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
         }
     }*/
 
-   /* *
-     * This method gets services and purposes by org.wso2.identity.carbon.user.consent.mgt.backend.constants.service id and purpose id for one user
-     *
-     * @param
-     * @param serviceId
-     * @param purposeId
-     * @return
-     * @throws DataAccessException*/
+    /* *
+      * This method gets services and purposes by org.wso2.identity.carbon.user.consent.mgt.backend.constants.service id and purpose id for one user
+      *
+      * @param
+      * @param serviceId
+      * @param purposeId
+      * @return
+      * @throws DataAccessException*/
     @Override
     public ServicesDO[] getServicePurposesByUserByServiceByPurposeId(String piiPrincipalId, int serviceId,
                                                                      int purposeId) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection con = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
             ConsentDao consentDao = new ConsentDao();
             ConsentDO consentInput = consentDao.getSGUIDByUser(piiPrincipalId);
 
-            String query = "SELECT A.SGUID,A.SERVICE_ID,\n" +
-                    "B.SERVICE_DESCRIPTION,\n" +
-                    "A.PURPOSE_ID,\n" +
-                    "C.PURPOSE,C.PRIMARY_PURPOSE,C.TERMINATION,C.THIRD_PARTY_DIS,C.THIRD_PARTY_ID,\n" +
-                    "D.THIRD_PARTY_NAME,\n" +
-                    "E.PII_CAT_ID,\n" +
-                    "F.PII_CAT,F.SENSITIVITY\n" +
-                    "FROM user_consent.SERVICE_MAP_CRID AS A,\n" +
-                    "user_consent.SERVICES AS B,\n" +
-                    "user_consent.PURPOSES AS C,\n" +
-                    "user_consent.THIRD_PARTY AS D,\n" +
-                    "user_consent.PURPOSE_MAP_PII_CAT AS E,\n" +
-                    "user_consent.PII_CATEGORY AS F\n" +
-                    "WHERE SGUID=?\n" +
-                    "AND A.SERVICE_ID=?\n" +
-                    "AND A.PURPOSE_ID=?\n" +
-                    "AND A.STATUS='Approved'\n" +
-                    "AND A.SERVICE_ID=B.SERVICE_ID\n" +
-                    "AND A.PURPOSE_ID=C.PURPOSE_ID\n" +
-                    "AND C.THIRD_PARTY_ID=D.THIRD_PARTY_ID\n" +
-                    "AND C.PURPOSE_ID=E.PURPOSE_ID\n" +
-                    "AND E.PII_CAT_ID=F.PII_CAT_ID;";
+            String query = SQLQueries.SERVICE_PURPOSES_BY_USER_BY_SERVICE_BY_PURPOSE_QUERY;
             try {
-                PreparedStatement preparedStatement = con.prepareStatement(query);
+                preparedStatement = con.prepareStatement(query);
                 preparedStatement.setString(1, consentInput.getSGUID());
                 preparedStatement.setInt(2, serviceId);
                 preparedStatement.setInt(3, purposeId);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
 
                 resultSet.last();
                 ServicesDO[] services = new ServicesDO[resultSet.getRow()];
@@ -710,44 +641,42 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return services;
             } catch (SQLException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while getting the purpose : " + purposeId + " to user : "
-                            + piiPrincipalId);
-                }
-                throw new DataAccessException(
-                        "Error occurred while getting the purpose : " + purposeId + " to user : " + piiPrincipalId,
-                        e);
+                log.error("Database error. Could not get consent details for the user. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get consent details for the user. - "+e
+                        .getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(con,preparedStatement,resultSet);
             }
         }
         return null;
     }
 
-    public PurposeDetailsDO getPurposeByUserByService(String subjectName,int serviceId,int purposeId) throws DataAccessException{
-        if(dbConnect.connect()){
-            Connection connection=dbConnect.getConnection();
+    public PurposeDetailsDO getPurposeByUserByService(String subjectName, int serviceId, int purposeId) throws DataAccessException {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
             ConsentDao consentDao = new ConsentDao();
             ConsentDO consentDO = consentDao.getSGUIDByUser(subjectName);
 
-            String query="SELECT A.SGUID,A.SERVICE_ID,B.SERVICE_DESCRIPTION,A.PURPOSE_ID,A.STATUS\n" +
-                    "FROM SERVICE_MAP_CRID AS A,SERVICES AS B\n" +
-                    "WHERE A.SGUID=?\n" +
-                    "AND A.STATUS=\"Approved\"\n" +
-                    "AND A.SERVICE_ID=?\n" +
-                    "AND A.PURPOSE_ID=?\n" +
-                    "AND A.SERVICE_ID=B.SERVICE_ID;";
-
+            String query = SQLQueries.PURPOSE_BY_USER_BY_SERVICE_QUERY;
             try {
-                PreparedStatement preparedStatement=connection.prepareStatement(query);
-                preparedStatement.setString(1,consentDO.getSGUID());
-                preparedStatement.setInt(2,serviceId);
-                preparedStatement.setInt(3,purposeId);
-                ResultSet resultSet=preparedStatement.executeQuery();
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, consentDO.getSGUID());
+                preparedStatement.setInt(2, serviceId);
+                preparedStatement.setInt(3, purposeId);
+                resultSet = preparedStatement.executeQuery();
                 resultSet.first();
-                PurposeDetailsDO purposeDetailsDO=getPurposeDetailsByPurposeId(resultSet.getInt(4));
+                PurposeDetailsDO purposeDetailsDO = getPurposeDetailsByPurposeId(resultSet.getInt(4));
                 return purposeDetailsDO;
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the purpose details",e);
+                log.error("Database error. Could not get purpose details for the user by service. - "+e.getMessage()
+                        ,e);
+                throw new DataAccessException("Database error. Could not get purpose details for the user by service." +
+                        " - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -765,22 +694,24 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
         int i = 0;
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
             String query = "SELECT COUNT(PII_PRINCIPAL_ID) as count FROM user_consent.TRANSACTION_DETAILS WHERE " +
                     "PII_PRINCIPAL_ID=?";
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, piiPrincipalId);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 resultSet.next();
                 i = resultSet.getByte("count");
             } catch (SQLException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while checking " + piiPrincipalId + " is in the data source or not in " +
-                            "method isPiiPrincipalExists()");
-                }
-                throw new DataAccessException("Error occurred while checking the Personal Identifiable Info Principal" +
-                        " is exists or not");
+                log.error("Database error. Could not get the existence of the user in the database. - "+e.getMessage
+                        (),e);
+                throw new DataAccessException("Database error. Could not get the existence of the user in the " +
+                        "database. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return i;
@@ -798,19 +729,25 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
         int dataControllerId = 0;
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
             String query = "SELECT DATA_CONTROLLER_ID FROM user_consent.DATA_CONTROLLER WHERE ORGANIZATION_NAME=?";
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, orgName);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 if (!resultSet.next()) {
                     dataControllerId = 0;
                 } else {
                     dataControllerId = resultSet.getByte("DATA_CONTROLLER_ID");
                 }
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while checking the data controller is available or not");
+                log.error("Database error. Could not get the existence of the data controller. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get the existence of the data controller. - " +
+                        ""+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return dataControllerId;
@@ -826,23 +763,26 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     @Override
     public int getServiceIdByService(String serviceName) throws DataAccessException {
         int serviceId = 0;
-
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
             String query = "SELECT SERVICE_ID FROM user_consent.SERVICES WHERE SERVICE_DESCRIPTION=?";
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, serviceName);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 if (!resultSet.next()) {
                     serviceId = 0;
                 } else {
                     serviceId = resultSet.getInt("SERVICE_ID");
                 }
-
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the service name");
+                log.error("Database error. Could not get service ID. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get service ID. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return serviceId;
@@ -858,25 +798,63 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     @Override
     public int getPurposeIdByPurpose(String purposeName) throws DataAccessException {
         int purposeId = 0;
-
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
             String query = "SELECT PURPOSE_ID FROM user_consent.PURPOSES WHERE PURPOSE=?";
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, purposeName);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 if (!resultSet.next()) {
                     purposeId = 0;
                 } else {
                     purposeId = resultSet.getInt("PURPOSE_ID");
                 }
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the purpose id by purpose");
+                log.error("Database error. Could not get purpose ID. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get purpose ID. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return purposeId;
+    }
+
+    public DataControllerDO getDataController(int dataControllerId) throws DataAccessException {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
+
+            String query = "SELECT * FROM DATA_CONTROLLER WHERE DATA_CONTROLLER_ID=?;";
+            try {
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, dataControllerId);
+                resultSet = preparedStatement.executeQuery();
+                resultSet.first();
+                DataControllerDO dataControllerDO = new DataControllerDO();
+                dataControllerDO.setDataControllerId(resultSet.getInt(1));
+                dataControllerDO.setOrgName(resultSet.getString(2));
+                dataControllerDO.setContactName(resultSet.getString(3));
+                dataControllerDO.setStreet(resultSet.getString(4));
+                dataControllerDO.setCountry(resultSet.getString(5));
+                dataControllerDO.setEmail(resultSet.getString(6));
+                dataControllerDO.setPhoneNo(resultSet.getString(7));
+                dataControllerDO.setPublicKey(resultSet.getString(8));
+                dataControllerDO.setPolicyUrl(resultSet.getString(9));
+                return dataControllerDO;
+            } catch (SQLException e) {
+                log.error("Database error. Could not get the data controller details. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get the data controller details. - "+e
+                        .getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
+            }
+        }
+        return null;
     }
 
     /**
@@ -889,12 +867,12 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public void addDataController(DataControllerDO dataController) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
             String query = "INSERT INTO user_consent.DATA_CONTROLLER(ORGANIZATION_NAME,CONTACT_NAME,STREET,COUNTRY,EMAIL," +
                     "PHONE_NUMBER,PUBLIC_KEY,POLICY_URL) VALUES(?,?,?,?,?,?,?,?)";
-
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, dataController.getOrgName());
                 preparedStatement.setString(2, dataController.getContactName());
                 preparedStatement.setString(3, dataController.getStreet());
@@ -904,12 +882,14 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 preparedStatement.setString(7, dataController.getPublicKey());
                 preparedStatement.setString(8, dataController.getPolicyUrl());
                 preparedStatement.executeUpdate();
-                if (log.isDebugEnabled()) {
-                    log.debug("Data Controller : " + dataController.getOrgName() + " successfully added to the data " +
-                            "store");
-                }
+                log.info("Successfully added the data controller details to the database");
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while adding the data controller to the data source");
+                log.error("Database error. Could not add data controller details to the database. - "+e.getMessage()
+                        ,e);
+                throw new DataAccessException("Database error. Could not add data controller details to the database." +
+                        " - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -925,23 +905,14 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public List<PiiCategoryDO> getSensitivePersonalInfoCategory(String SGUID) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
-            String query = "SELECT C.PII_CAT_ID,C.PII_CAT,A.PURPOSE_ID ,B.PURPOSE,D.SGUID\n" +
-                    "FROM user_consent.PURPOSE_MAP_PII_CAT AS A," +
-                    "user_consent.PURPOSES AS B," +
-                    "user_consent.PII_CATEGORY AS C," +
-                    "user_consent.SERVICE_MAP_CRID AS D\n" +
-                    "WHERE A.PURPOSE_ID=B.PURPOSE_ID\n" +
-                    "AND A.PII_CAT_ID=C.PII_CAT_ID\n" +
-                    "AND B.PURPOSE_ID=D.PURPOSE_ID\n" +
-                    "AND D.SGUID=?\n" +
-                    "AND C.SENSITIVITY=1\n" +
-                    "GROUP BY A.PII_CAT_ID,B.PURPOSE_ID;";
-
+            String query = SQLQueries.SENSITIVE_PERSONAL_INFO_CATEGORY_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, SGUID);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 PiiCategoryDO piiCategory;
                 List<PiiCategoryDO> piiCategoryList = new ArrayList<>();
                 int temp = 0;
@@ -964,8 +935,11 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return piiCategoryList;
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the sensitive personal information " +
-                        "categories");
+                log.error("Database error. Could not get the sensitive personal info categories. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get the sensitive personal info categories. " +
+                        "- "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -982,22 +956,14 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public List<PurposeDetailsDO> getPurposeCategories(String SGUID) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
-            String query = "SELECT A.PURPOSE_ID,C.PURPOSE,A.PURPOSE_CAT_ID,B.PURPOSE_CAT_SHORT_CODE\n" +
-                    "FROM user_consent.PURPOSE_MAP_PURPOSE_CAT AS A,\n" +
-                    "user_consent.PURPOSE_CATEGORY AS B,\n" +
-                    "user_consent.PURPOSES AS C,\n" +
-                    "user_consent.SERVICE_MAP_CRID AS D\n" +
-                    "WHERE A.PURPOSE_CAT_ID=B.PURPOSE_CAT_ID\n" +
-                    "AND A.PURPOSE_ID=C.PURPOSE_ID\n" +
-                    "AND A.PURPOSE_ID=D.PURPOSE_ID\n" +
-                    "AND D.SGUID=?\n" +
-                    "GROUP BY A.PURPOSE_ID,A.PURPOSE_CAT_ID;";
-
+            String query = SQLQueries.PURPOSE_CATEGORIES_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, SGUID);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
 
                 List<PurposeDetailsDO> purposeCategoryDetailsList = new ArrayList<>();
                 PurposeDetailsDO purposeCategoryDetails;
@@ -1011,7 +977,10 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return purposeCategoryDetailsList;
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting purpose categories");
+                log.error("Database error. Could not get purpose categories. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get purpose categories. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -1022,28 +991,31 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
      *
      * @param piiCategory
      * @throws DataAccessException
-     * @override PiiCategory org.wso2.identity.carbon.user.consent.mgt.backend.constants.DAO to add Personally Identifiable Info Categories
+     * @override PiiCategory DAO to add Personally Identifiable Info Categories
      */
     @Override
     public void addPiiCategory(PiiCategoryDO piiCategory) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
             String query = "INSERT INTO user_consent.PII_CATEGORY(PII_CAT,PII_CAT_DESCRIPTION,SENSITIVITY)\n" +
                     "VALUES(?,?,?);";
 
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, piiCategory.getPiiCat());
                 preparedStatement.setString(2, piiCategory.getPiiCatDescription());
                 preparedStatement.setInt(3, piiCategory.getSensitivity());
                 preparedStatement.executeUpdate();
-                if (log.isDebugEnabled()) {
-                    log.debug("Personally Identifiable Information Category was successfully added to the database.");
-                }
+                log.info("Personally Identifiable Information Category was successfully added to the database.");
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while adding personally identifiable info categories to" +
-                        " the data source.");
+                log.error("Database error. Could not add personally identifiable info category tho the database. - " +
+                        ""+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not add personally identifiable info category " +
+                        "tho the database. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -1053,32 +1025,30 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
      *
      * @param piiCategory
      * @throws DataAccessException
-     * @override PiiCategory org.wso2.identity.carbon.user.consent.mgt.backend.constants.DAO to update Personally Identifiable Info Categories
+     * @override PiiCategory DAO to update Personally Identifiable Info Categories
      */
     @Override
     public void updatePersonallyIdentifiableInfoCat(PiiCategoryDO piiCategory) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
-            String query = "UPDATE user_consent.PII_CATEGORY\n" +
-                    "SET PII_CAT=?, PII_CAT_DESCRIPTION=?, SENSITIVITY=?" +
-                    "WHERE PII_CAT_ID=?;";
-
+            String query = SQLQueries.PERSONALLY_IDENTIFIABLE_INFO_CAT_UPDATE_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, piiCategory.getPiiCat());
                 preparedStatement.setString(2, piiCategory.getPiiCatDescription());
                 preparedStatement.setInt(3, piiCategory.getSensitivity());
                 preparedStatement.setInt(4, piiCategory.getPiiCatId());
                 preparedStatement.executeUpdate();
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Personally Identifiable Information Category : " + piiCategory.getPiiCat() + " was " +
-                            "successfully updated");
-                }
+                log.info("Successfully updated the personally identifiable category to the database");
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while updating the Personally Identifiable Information " +
-                        "Category");
+                log.error("Database error. Could not update personally identifiable info category. - "+e.getMessage
+                        (),e);
+                throw new DataAccessException("Database error. Could not update personally identifiable info category" +
+                        ". - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -1088,32 +1058,30 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
      *
      * @param purpose
      * @throws DataAccessException
-     * @override PurposeDetails org.wso2.identity.carbon.user.consent.mgt.backend.constants.DAO to add purpose details to the database
+     * @override PurposeDetails DAO to add purpose details to the database
      */
     @Override
     public void addPurposeDetails(PurposeDetailsDO purpose) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
-            String query = "INSERT INTO user_consent.PURPOSES(PURPOSE,PRIMARY_PURPOSE,TERMINATION,THIRD_PARTY_DIS,THIRD_PARTY_ID)" +
-                    "VALUES(?,?,?,?,?)";
-
+            String query = "INSERT INTO user_consent.PURPOSES(PURPOSE,PRIMARY_PURPOSE,TERMINATION,THIRD_PARTY_DIS," +
+                    "THIRD_PARTY_ID) VALUES(?,?,?,?,?)";
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, purpose.getPurpose());
                 preparedStatement.setString(2, purpose.getPrimaryPurpose());
                 preparedStatement.setString(3, purpose.getTermination());
                 preparedStatement.setString(4, purpose.getThirdPartyDis());
                 preparedStatement.setInt(5, purpose.getThirdPartyId());
                 preparedStatement.executeUpdate();
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Purpose : " + purpose.getPurpose() + " was successfully added to the data store");
-                }
-
+                log.info("Successfully added the purpose details to the database");
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while adding Purpose to " + purpose.getPurpose() + " the " +
-                        "database");
+                log.error("Database error. Could not add purpose details. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not add purpose details. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -1129,13 +1097,11 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public void updatePurposeDetails(PurposeDetailsDO purpose) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
-            String query = "UPDATE user_consent.PURPOSES" +
-                    "SET PURPOSE=?,PRIMARY_PURPOSE=?,TERMINATION=?,THIRD_PARTY_DIS=?,THIRD_PARTY_ID=?" +
-                    "WHERE PURPOSE_ID=?";
-
+            String query = SQLQueries.PURPOSE_DETAILS_UPDATE_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, purpose.getPurpose());
                 preparedStatement.setString(2, purpose.getPrimaryPurpose());
                 preparedStatement.setString(3, purpose.getTermination());
@@ -1143,13 +1109,12 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 preparedStatement.setInt(5, purpose.getThirdPartyId());
                 preparedStatement.setInt(6, purpose.getPurposeId());
                 preparedStatement.executeUpdate();
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Purpose : " + purpose.getPurpose() + " was successfully updated to the database");
-                }
+                log.info("Successfully updated the purpose details to the database.");
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while updating the purpose : " + purpose.getPurpose() + " " +
-                        "to the data store");
+                log.error("Database error. Could not update purpose details. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not update purpose details. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -1159,27 +1124,27 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
      *
      * @param service
      * @throws DataAccessException
-     * @override ServicesDAO to add org.wso2.identity.carbon.user.consent.mgt.backend.constants.service details to the data store
+     * @override ServicesDAO to add service details to the data store
      */
     @Override
     public void addServiceDetails(ServicesDO service) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
-            String query = "INSERT INTO user_consent.SERVICES(SERVICE_DESCRIPTION)" +
-                    "VALUES(?);";
+            String query = "INSERT INTO user_consent.SERVICES(SERVICE_DESCRIPTION) VALUES(?);";
 
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, service.getServiceDescription());
                 preparedStatement.executeUpdate();
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Service : " + service.getServiceDescription() + " successfully added to the data store");
-                }
+                log.info("Successfully added service details to the database");
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while adding the service : " + service.getServiceDescription() +
-                        " to the data store");
+                log.error("Database error. Could not add service details to the database. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not add service details to the database. - "+e
+                        .getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -1195,21 +1160,20 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public void updateServiceDetails(ServicesDO service) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
-            String query = "UPDATE user_consent.SERVICES" +
-                    "SET SERVICE_DESCRIPTION=?;";
+            String query = "UPDATE user_consent.SERVICES SET SERVICE_DESCRIPTION=?;";
 
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, service.getServiceDescription());
                 preparedStatement.executeUpdate();
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Service : " + service.getServiceDescription() + " was successfully updated to the data " +
-                            "store");
-                }
+                log.info("Successfully updated the service details to the database");
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while updating the service : " + service.getServiceDescription());
+                log.error("Database error. Could not update service details. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not update service details. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -1225,22 +1189,22 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public void updatePiiPrincipalId(ConsentDO consentDO) throws DataAccessException {
         if (log.isDebugEnabled()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
-            String query = "UPDATE user_consent.TRANSACTION_DETAILS" +
-                    "SET PII_PRINCIPAL_ID=?" +
-                    "WHERE SGUID=?;";
+            String query = "UPDATE user_consent.TRANSACTION_DETAILS SET PII_PRINCIPAL_ID=? WHERE SGUID=?;";
 
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, consentDO.getPiiPrincipalId());
                 preparedStatement.setString(2, consentDO.getSGUID());
                 preparedStatement.executeUpdate();
-
-                if (log.isDebugEnabled()) {
-                    log.debug("ID was successfully updated to the data store.");
-                }
+                log.info("Successfully updated the user name(subject name) to the database.");
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while updating the ID to thr data store.");
+                log.error("Database error. Could not update user name(subject name). - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not update user name(subject name). - "+e
+                        .getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -1263,15 +1227,11 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
 
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
-            String query = "UPDATE user_consent.SERVICE_MAP_CRID" +
-                    "SET STATUS='Revoked',CONSENT_TIME=?" +
-                    "WHERE SGUID=?" +
-                    "AND SERVICE_ID=?" +
-                    "AND PURPOSE_ID=?";
-
+            String query = SQLQueries.CONSENT_BY_USER_REVOKE_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, currentTime);
                 preparedStatement.setString(2, consentDO.getSGUID());
                 for (int i = 0; i < serviceList.size(); i++) {
@@ -1284,12 +1244,12 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                         }
                     }
                 }
-                if (log.isDebugEnabled()) {
-                    log.debug("Subject : " + piiPrincipalId + " was successfully revoked.");
-                }
+                log.info("Successfully revoked the user consent from the database");
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while revoking the subject : " + piiPrincipalId + " " +
-                        "from the data source");
+                log.error("Database error. Could not revoke consent. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not revoke consent. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -1301,26 +1261,37 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
      * @return
      * @throws DataAccessException
      */
-    @Override
-    public int getPurposeTerminationDays(int purposeId) throws DataAccessException {
-        int termination = 0;
+    private String getPurposeTerminationDays(int purposeId, String consentedTime) throws DataAccessException {
+        String exactTermination = null;
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
-            String query = "SELECT TERMINATION " +
-                    "FROM user_consent.PURPOSES " +
-                    "WHERE PURPOSE_ID=?";
+            String query = "SELECT TERMINATION FROM user_consent.PURPOSES WHERE PURPOSE_ID=?";
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setInt(1, purposeId);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 resultSet.next();
-                termination = resultSet.getInt(1);
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(dateFormat.parse(consentedTime));
+                cal.add(Calendar.DATE, resultSet.getInt(1));
+                exactTermination = dateFormat.format(cal.getTime());
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the termination days of a purpose.");
+                log.error("Database error. Could not get purpose termination days. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get purpose termination days. - "+e
+                        .getMessage(),e);
+            } catch (ParseException e) {
+                log.error("Time error. consented time is not in required date format");
+                throw new DataAccessException("Error occurred while parsing the consented date.");
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
-        return termination;
+        return exactTermination;
     }
 
     /**
@@ -1336,13 +1307,12 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
 
-            String query = "INSERT INTO RECEIPT_TRACKER(CONSENT_RECEIPT_ID,CONSENT_RECEIPT,STATUS,SGUID," +
-                    "RECEIPT_TIMESTAMP)" +
+            String query = "INSERT INTO RECEIPT_TRACKER(CONSENT_RECEIPT_ID,CONSENT_RECEIPT,STATUS,SGUID,RECEIPT_TIMESTAMP)" +
                     "VALUES(?,?,?,?,?)";
-
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, consentReceiptId);
                 preparedStatement.setString(2, jsonJWT);
                 preparedStatement.setString(3, "Generated");
@@ -1350,10 +1320,12 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 preparedStatement.setString(5, timestamp);
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while adding the json file to the tracker" + e);
-                }
-                throw new DataAccessException("Error occurred while adding the json file to the tracker");
+               log.error("Database error. Could not add the tracking details of the consent receipt. - "+e
+                       .getMessage(),e);
+               throw new DataAccessException("Database error. Could not add the tracking details of the consent " +
+                        "receipt. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
             }
         }
     }
@@ -1362,12 +1334,13 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public List<PiiCategoryDO> getPersonalInfoCatForConfig() throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
             String query = "SELECT * FROM user_consent.PII_CATEGORY;";
-
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                preparedStatement = connection.prepareStatement(query);
+                resultSet = preparedStatement.executeQuery();
                 List<PiiCategoryDO> personallyIdentifiableInfoCatList = new ArrayList<>();
                 while (resultSet.next()) {
                     PiiCategoryDO piiCategoryDO = new PiiCategoryDO();
@@ -1379,8 +1352,12 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return personallyIdentifiableInfoCatList;
             } catch (SQLException e) {
-                throw new DataAccessException("Error while getting the Personally Identifiable Information Category " +
-                        "list");
+                log.error("Database error. Could not get the personally identifiable info categories. - "+e
+                        .getMessage(),e);
+                throw new DataAccessException("Database error. Could not get the personally identifiable info " +
+                        "categories. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -1390,13 +1367,14 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public List<PurposeDetailsDO> getPurposesForConfig() throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
-            String query = "SELECT A.*,B.THIRD_PARTY_NAME FROM user_consent.PURPOSES AS A,user_consent.THIRD_PARTY AS B " +
-                    "WHERE A.THIRD_PARTY_ID=B.THIRD_PARTY_ID;";
-
+            String query = "SELECT A.*,B.THIRD_PARTY_NAME FROM user_consent.PURPOSES AS A,user_consent.THIRD_PARTY AS" +
+                    " B WHERE A.THIRD_PARTY_ID=B.THIRD_PARTY_ID;";
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                preparedStatement = connection.prepareStatement(query);
+                resultSet = preparedStatement.executeQuery();
                 List<PurposeDetailsDO> purposeDetailsDOList = new ArrayList<>();
                 while (resultSet.next()) {
                     PurposeDetailsDO purposeDetailsDO = new PurposeDetailsDO();
@@ -1420,7 +1398,11 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return purposeDetailsDOList;
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the Purposes list", e);
+                log.error("Database error. Could not get purpose details for config. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get purpose details for config. - "+e
+                        .getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -1429,17 +1411,14 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     private List<PurposeCategoryDO> getPurposeCatsForPurposeConf(int purposeId) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
-            String query = "SELECT A.*, B.PURPOSE_CAT_SHORT_CODE\n" +
-                    "FROM user_consent.PURPOSE_MAP_PURPOSE_CAT AS A,\n" +
-                    "user_consent.PURPOSE_CATEGORY AS B\n" +
-                    "WHERE A.PURPOSE_CAT_ID=B.PURPOSE_CAT_ID\n" +
-                    "AND A.PURPOSE_ID=?;";
-
+            String query = SQLQueries.PURPOSE_CATS_FOR_PURPOSE_CONF_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setInt(1, purposeId);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 List<PurposeCategoryDO> purposeCatList = new ArrayList<>();
                 while (resultSet.next()) {
                     PurposeCategoryDO purposeCat = new PurposeCategoryDO();
@@ -1450,7 +1429,10 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return purposeCatList;
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the Purpose Categories");
+                log.error("Database error. Could not get purpose categories. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get purpose categories. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -1459,16 +1441,14 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     private List<PiiCategoryDO> getPersonalIdentifyCatForPurposeConf(int purposeId) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
-            String query = "SELECT A.*,B.PII_CAT\n" +
-                    "FROM PURPOSE_MAP_PII_CAT AS A,PII_CATEGORY AS B\n" +
-                    "WHERE A.PII_CAT_ID=B.PII_CAT_ID\n" +
-                    "AND A.PURPOSE_ID=?;";
-
+            String query = SQLQueries.PERSONALLY_IDENTIFIABLR_CAT_FOR_PURPOSE_CONF_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setInt(1, purposeId);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 List<PiiCategoryDO> piiCategoryDOList = new ArrayList<>();
                 while (resultSet.next()) {
                     PiiCategoryDO piiCategoryDO = new PiiCategoryDO();
@@ -1479,8 +1459,11 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return piiCategoryDOList;
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the Personally Identifiable Info " +
-                        "Categories to the purpose configurations", e);
+                log.error("Database error. Could not get personally identifiable categories. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get personally identifiable categories. - " +
+                        ""+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -1490,12 +1473,13 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public List<ServicesDO> getServicesForConf() throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
-            String query = SQLQueries.servicesForConfQuery;
-
+            String query = SQLQueries.SERVICES_FOR_CONF_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                preparedStatement = connection.prepareStatement(query);
+                resultSet = preparedStatement.executeQuery();
                 List<ServicesDO> servicesDOList = new ArrayList<>();
                 while (resultSet.next()) {
                     ServicesDO servicesDO = new ServicesDO();
@@ -1508,8 +1492,10 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return servicesDOList;
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the service details for the " +
-                        "configurations");
+                log.error("Database error. Could not get services for config. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get services for config. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -1518,13 +1504,14 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     private List<PurposeDetailsDO> getPurposeDetailsForServiceConf(int serviceId) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
-            String query = SQLQueries.purposeDetailsForServiceConfQuery;
-
+            String query = SQLQueries.PURPOSE_DETAILS_FOR_SERVICE_CONF_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setInt(1, serviceId);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 List<PurposeDetailsDO> purposeDetailsDOList = new ArrayList<>();
                 while (resultSet.next()) {
                     PurposeDetailsDO purposeDetailsDO = new PurposeDetailsDO();
@@ -1534,7 +1521,11 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 }
                 return purposeDetailsDOList;
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.error("Database error. Could not get purpose details for service config. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get purpose details for service config. - " +
+                        ""+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;
@@ -1544,27 +1535,63 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     public List<ServicesDO> getServicesForUserView(String subjectName) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
 
-            String query = "SELECT DISTINCT A.SERVICE_ID,C.SERVICE_DESCRIPTION,B.PII_PRINCIPAL_ID\n" +
-                    "FROM SERVICE_MAP_CRID AS A,TRANSACTION_DETAILS AS B,SERVICES AS C\n" +
-                    "WHERE A.SGUID=B.SGUID\n" +
-                    "AND B.PII_PRINCIPAL_ID=?\n" +
-                    "AND A.SERVICE_ID=C.SERVICE_ID;";
-
+            String query = SQLQueries.SERVICES_FOR_USER_VIEW_QUERY;
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, subjectName);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet = preparedStatement.executeQuery();
                 List<ServicesDO> servicesDOList = new ArrayList<>();
                 while (resultSet.next()) {
                     ServicesDO servicesDO = new ServicesDO();
                     servicesDO.setServiceId(resultSet.getInt(1));
                     servicesDO.setServiceDescription(resultSet.getString(2));
+
+                    List<Integer> purposeIdList = getPurposeIdByUserByService(resultSet.getString(4), resultSet.getInt
+                            (1));
+                    List<PurposeDetailsDO> purposeDetailsDOList = new ArrayList<>();
+                    for (int i = 0; i < purposeIdList.size(); i++) {
+                        PurposeDetailsDO purpose = getPurposeDetailsByPurposeId(purposeIdList.get(i));
+                        purposeDetailsDOList.add(purpose);
+                    }
+                    servicesDO.setPurposeDetails(purposeDetailsDOList.toArray(new PurposeDetailsDO[0]));
                     servicesDOList.add(servicesDO);
                 }
                 return servicesDOList;
             } catch (SQLException e) {
-                throw new DataAccessException("Error occurred while getting the services for the user view");
+                log.error("Database error. Could not get services. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get services. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
+            }
+        }
+        return null;
+    }
+
+    private List<Integer> getPurposeIdByUserByService(String sguid, int serviceId) throws DataAccessException {
+        if (dbConnect.connect()) {
+            Connection connection = dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
+
+            String query = SQLQueries.PURPOSE_ID_BY_USER_BY_SERVICE_QUERY;
+            try {
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, serviceId);
+                preparedStatement.setString(2, sguid);
+                resultSet = preparedStatement.executeQuery();
+
+                List<Integer> purposeIdList = new ArrayList<>();
+                while (resultSet.next()) {
+                    int i = resultSet.getInt(3);
+                    purposeIdList.add(i);
+                }
+                return purposeIdList;
+            } catch (SQLException e) {
+                log.error("Database error. Could not get purpose IDs. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get purpose IDs. - "+e.getMessage(),e);
             }
         }
         return null;
