@@ -15,7 +15,6 @@ import identity_user_consent_mgt_endpoint.dto.ServiceInputDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentRevokeListDTO;
-import identity_user_consent_mgt_endpoint.dto.ConsentDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceListDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceCRDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
@@ -261,22 +260,6 @@ public class ConsentApi  {
     public Response consentRevokePut(@ApiParam(value = "Details for the consent revoke" ,required=true ) ConsentRevokeListDTO revokingConsent)
     {
     return delegate.consentRevokePut(revokingConsent);
-    }
-    @GET
-    @Path("/{subjectName}")
-    @Consumes({ "application/json" })
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Getting consent details", notes = "Getting consent details of an user to populate the UI", response = ConsentDTO.class)
-    @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation"),
-        
-        @io.swagger.annotations.ApiResponse(code = 400, message = "invalid subject name supplied"),
-        
-        @io.swagger.annotations.ApiResponse(code = 404, message = "consent for this subject name not found") })
-
-    public Response consentSubjectNameGet(@ApiParam(value = "User name to get the consent details to an user",required=true ) @PathParam("subjectName")  String subjectName)
-    {
-    return delegate.consentSubjectNameGet(subjectName);
     }
     @GET
     @Path("/{subjectName}/receipt")

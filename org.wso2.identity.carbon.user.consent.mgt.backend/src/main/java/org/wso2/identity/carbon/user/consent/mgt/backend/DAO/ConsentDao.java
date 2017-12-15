@@ -2,6 +2,7 @@ package org.wso2.identity.carbon.user.consent.mgt.backend.DAO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.config.ConnectionConfig;
 import org.wso2.identity.carbon.user.consent.mgt.backend.DAOInterfaces.MainDaoInt;
 import org.wso2.identity.carbon.user.consent.mgt.backend.consentUtils.DBUtils;
 import org.wso2.identity.carbon.user.consent.mgt.backend.constants.SQLQueries;
@@ -604,6 +605,7 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
     @Override
     public ServicesDO[] getServicePurposesByUserByServiceByPurposeId(String piiPrincipalId, int serviceId,
                                                                      int purposeId) throws DataAccessException {
+        ServicesDO[] services=null;
         if (dbConnect.connect()) {
             Connection con = dbConnect.getConnection();
             PreparedStatement preparedStatement=null;
@@ -621,7 +623,7 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 resultSet = preparedStatement.executeQuery();
 
                 resultSet.last();
-                ServicesDO[] services = new ServicesDO[resultSet.getRow()];
+                services = new ServicesDO[resultSet.getRow()];
                 resultSet.beforeFirst();
 
                 PurposeDetailsDO purpose;
@@ -639,7 +641,6 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                             resultSet.getString("SERVICE_DESCRIPTION"), purpose);
                     i++;
                 }
-                return services;
             } catch (SQLException e) {
                 log.error("Database error. Could not get consent details for the user. - "+e.getMessage(),e);
                 throw new DataAccessException("Database error. Could not get consent details for the user. - "+e
@@ -648,7 +649,7 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 DBUtils.closeAllConnections(con,preparedStatement,resultSet);
             }
         }
-        return null;
+        return services;
     }
 
     public PurposeDetailsDO getPurposeByUserByService(String subjectName, int serviceId, int purposeId) throws DataAccessException {
@@ -680,6 +681,32 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             }
         }
         return null;
+    }
+
+    public String getUserNameFromSGUID(String subjectName) throws DataAccessException {
+        String subject=null;
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
+            ConsentDO consentDO=getSGUIDByUser(subjectName);
+
+            String query="SELECT * FROM TRANSACTION_DETAILS WHERE SGUID=?";
+
+            try {
+                preparedStatement=connection.prepareStatement(query);
+                preparedStatement.setString(1,consentDO.getSGUID());
+                resultSet=preparedStatement.executeQuery();
+                resultSet.first();
+                subject=resultSet.getString(3);
+            } catch (SQLException e) {
+                log.error("Database error. Could not get the subject name. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get the subject name. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
+            }
+        }
+        return subject;
     }
 
     /**
@@ -888,6 +915,34 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                         ,e);
                 throw new DataAccessException("Database error. Could not add data controller details to the database." +
                         " - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement);
+            }
+        }
+    }
+
+    public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException{
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+
+            String query=SQLQueries.DATA_CONTROLLER_UPDATE_QUERY;
+            try {
+                preparedStatement=connection.prepareStatement(query);
+                preparedStatement.setString(1,dataControllerDO.getOrgName());
+                preparedStatement.setString(2,dataControllerDO.getContactName());
+                preparedStatement.setString(3,dataControllerDO.getStreet());
+                preparedStatement.setString(4,dataControllerDO.getCountry());
+                preparedStatement.setString(5,dataControllerDO.getEmail());
+                preparedStatement.setString(6,dataControllerDO.getPhoneNo());
+                preparedStatement.setString(7,dataControllerDO.getPublicKey());
+                preparedStatement.setString(8,dataControllerDO.getPolicyUrl());
+                preparedStatement.setInt(9,dataControllerDO.getDataControllerId());
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                log.error("Database error. Could not update the data controller. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not update the data controller. - "+e.getMessage
+                        (),e);
             } finally {
                 DBUtils.closeAllConnections(connection,preparedStatement);
             }
@@ -1592,6 +1647,8 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             } catch (SQLException e) {
                 log.error("Database error. Could not get purpose IDs. - "+e.getMessage(),e);
                 throw new DataAccessException("Database error. Could not get purpose IDs. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
             }
         }
         return null;

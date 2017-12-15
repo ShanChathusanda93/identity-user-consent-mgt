@@ -126,6 +126,7 @@ public class JSONParser {
         JSONObject jsonObject = new JSONObject();
 
         jsonObject = setUserAndDataControllerDetails(jsonObject, consentDO);
+        jsonObject = setUserAndDataControllerDetails(jsonObject, consentDO);
 
         consentDao = new ConsentDao(consentDO.getSGUID(), true);
         List<ServicesDO> servicesList = consentDao.getServices();
@@ -325,16 +326,24 @@ public class JSONParser {
     }
 
     private void createConsentReceiptFile(JSONObject jsonObject, String piiPrincipalId) {
+        FileWriter fileWriter=null;
         try {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             String json = gson.toJson(jsonObject);
 
-            FileWriter fileWriter = new FileWriter
+            fileWriter = new FileWriter
                     ("/home/shan/gdpr_project/financial-open-banking/consent-" + piiPrincipalId + ".json");
             fileWriter.write(json);
-            fileWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if(fileWriter!=null) {
+                try {
+                    fileWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

@@ -1,17 +1,19 @@
 package org.wso2.identity.carbon.user.consent.mgt.backend.service;
 
 import org.json.simple.JSONObject;
+import org.wso2.identity.carbon.user.consent.mgt.backend.DAO.ConsentDao;
 import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
 
+import javax.xml.crypto.Data;
 import java.text.ParseException;
 import java.util.List;
 
 public interface ConsentBackend {
-    public void produce(String name);
     public JSONObject getCreatedConsentReceipt(String subjectName) throws DataAccessException, ParseException;
     public List<PiiCategoryDO> getPersonalIdentifyInfoCat() throws DataAccessException;
     public List<PurposeDetailsDO> getPurposeDetailsForConf() throws DataAccessException;
@@ -27,4 +29,11 @@ public interface ConsentBackend {
     public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
     public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException;
     public void setService(ServicesDO service) throws DataAccessException;
+    public String getSubjectName(String subjectName) throws DataAccessException;
+    public void setConsentDetailsForUser(ConsentDO consentDO,ServicesDO[] services) throws DataAccessException;
+    public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException;
+    public void updatePersonallyIdentifiableInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
+    public void updatePurpose(PurposeDetailsDO purpose) throws DataAccessException;
+    public void updateService(ServicesDO services) throws DataAccessException;
+    public void revokeConsent(String subjectName,List<ServicesDO> servicesList) throws DataAccessException;
 }

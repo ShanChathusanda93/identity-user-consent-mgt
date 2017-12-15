@@ -4,21 +4,16 @@ import org.json.simple.JSONObject;
 import org.wso2.identity.carbon.user.consent.mgt.backend.DAO.ConsentDao;
 import org.wso2.identity.carbon.user.consent.mgt.backend.JSONParserLayer.JSONParser;
 import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ConsentBackendImpl implements ConsentBackend {
-    @Override
-    public void produce(String name) {
-        ConsentDao consentDao = new ConsentDao();
-    }
-
     @Override
     public JSONObject getCreatedConsentReceipt(String subjectName) throws DataAccessException, ParseException {
         JSONParser jsonParser = new JSONParser();
@@ -49,60 +44,99 @@ public class ConsentBackendImpl implements ConsentBackend {
 
     @Override
     public List<ServicesDO> getServicesForUserView(String subjectName) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
-        List<ServicesDO> servicesDOList=consentDao.getServicesForUserView(subjectName);
+        ConsentDao consentDao = new ConsentDao();
+        List<ServicesDO> servicesDOList = consentDao.getServicesForUserView(subjectName);
         return servicesDOList;
     }
 
     @Override
     public ServicesDO getServiceByUserByServiceId(String subjectName, int serviceId) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
-        ServicesDO servicesDO=consentDao.getServiceByUserByServiceIdDemo(subjectName,serviceId);
+        ConsentDao consentDao = new ConsentDao();
+        ServicesDO servicesDO = consentDao.getServiceByUserByServiceIdDemo(subjectName, serviceId);
         return servicesDO;
     }
 
     @Override
     public PurposeDetailsDO getPurposeByUserByServiceByPurposeId(String subjectName, int serviceId, int purposeId) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
-        PurposeDetailsDO purposeDetailsDO=consentDao.getPurposeByUserByService(subjectName,serviceId,purposeId);
+        ConsentDao consentDao = new ConsentDao();
+        PurposeDetailsDO purposeDetailsDO = consentDao.getPurposeByUserByService(subjectName, serviceId, purposeId);
         return purposeDetailsDO;
     }
 
     @Override
     public List<ServicesDO> getServicesByUserByThirdParty(String subjectName, int thirdPartyId) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
-        List<ServicesDO> servicesDOList=consentDao.getServiceDetailsByThirdParty(subjectName,thirdPartyId);
+        ConsentDao consentDao = new ConsentDao();
+        List<ServicesDO> servicesDOList = consentDao.getServiceDetailsByThirdParty(subjectName, thirdPartyId);
         return servicesDOList;
     }
 
     @Override
     public void setDataController(DataControllerDO dataControllerDO) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
+        ConsentDao consentDao = new ConsentDao();
         consentDao.addDataController(dataControllerDO);
+//        consentDao.getDataController(1)
     }
 
     @Override
     public DataControllerDO getDataController(int dataControllerId) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
-        DataControllerDO dataControllerDO=consentDao.getDataController(dataControllerId);
+        ConsentDao consentDao = new ConsentDao();
+        DataControllerDO dataControllerDO = consentDao.getDataController(dataControllerId);
         return dataControllerDO;
     }
 
     @Override
     public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
+        ConsentDao consentDao = new ConsentDao();
         consentDao.addPiiCategory(piiCategoryDO);
     }
 
     @Override
     public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
+        ConsentDao consentDao = new ConsentDao();
         consentDao.addPurposeDetails(purpose);
     }
 
     @Override
     public void setService(ServicesDO service) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
+        ConsentDao consentDao = new ConsentDao();
         consentDao.addServiceDetails(service);
+    }
+
+    @Override
+    public String getSubjectName(String subjectName) throws DataAccessException {
+        ConsentDao consentDao = new ConsentDao();
+        String subject = consentDao.getUserNameFromSGUID(subjectName);
+        return subject;
+    }
+
+    @Override
+    public void setConsentDetailsForUser(ConsentDO consentDO,ServicesDO[] services) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.addUserAndDataControllerDetails(consentDO);
+        consentDao.addUserConsentDetails(consentDO,services);
+    }
+
+    @Override
+    public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.updateDataController(dataControllerDO);
+    }
+
+    @Override
+    public void updatePersonallyIdentifiableInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.updatePersonallyIdentifiableInfoCat(piiCategoryDO);
+    }
+
+    @Override
+    public void updatePurpose(PurposeDetailsDO purpose) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.updatePurposeDetails(purpose);
+    }
+
+    @Override
+    public void updateService(ServicesDO service) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.updateServiceDetails(service);
     }
 }

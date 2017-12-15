@@ -49,7 +49,7 @@ public class ConsentReceiptDTO  {
   private List<ServiceCRDTO> services = new ArrayList<ServiceCRDTO>();
   
   @NotNull
-  private Boolean sensitive = null;
+  private Integer sensitive = null;
   
   @NotNull
   private List<String> spiCat = new ArrayList<String>();
@@ -179,10 +179,10 @@ public class ConsentReceiptDTO  {
    **/
   @ApiModelProperty(required = true, value = "")
   @JsonProperty("sensitive")
-  public Boolean getSensitive() {
+  public Integer getSensitive() {
     return sensitive;
   }
-  public void setSensitive(Boolean sensitive) {
+  public void setSensitive(Integer sensitive) {
     this.sensitive = sensitive;
   }
 

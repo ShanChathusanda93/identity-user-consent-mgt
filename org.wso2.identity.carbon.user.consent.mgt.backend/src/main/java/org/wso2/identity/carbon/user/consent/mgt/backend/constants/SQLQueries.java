@@ -178,4 +178,15 @@ public class SQLQueries {
             "WHERE A.SERVICE_ID=?\n" +
             "AND A.SGUID=?\n" +
             "AND A.PURPOSE_ID=B.PURPOSE_ID;";
+
+    public static final String DATA_CONTROLLER_UPDATE_QUERY="UPDATE DATA_CONTROLLER\n" +
+            "SET ORGANIZATION_NAME=?,\n" +
+            "CONTACT_NAME=?\n" +
+            "STREET=?\n" +
+            "COUNTRY=?\n" +
+            "EMAIL=?\n" +
+            "PHONE_NUMBER=?\n" +
+            "PUBLIC_KEY=?\n" +
+            "POLICY_URL=?\n" +
+            "WHERE DATA_CONTROLLER_ID=?;";
 }

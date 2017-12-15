@@ -23,8 +23,11 @@ public class UserConsentWebFormDTO  {
   @NotNull
   private String subjectName = null;
   
-  @NotNull
-  private String dataController = null;
+  
+  private String sguid = null;
+  
+  
+  private Integer dataControllerId = null;
   
   @NotNull
   private List<ServiceWebFormDTO> services = new ArrayList<ServiceWebFormDTO>();
@@ -56,13 +59,25 @@ public class UserConsentWebFormDTO  {
   
   /**
    **/
-  @ApiModelProperty(required = true, value = "")
-  @JsonProperty("dataController")
-  public String getDataController() {
-    return dataController;
+  @ApiModelProperty(value = "")
+  @JsonProperty("sguid")
+  public String getSguid() {
+    return sguid;
   }
-  public void setDataController(String dataController) {
-    this.dataController = dataController;
+  public void setSguid(String sguid) {
+    this.sguid = sguid;
+  }
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("dataControllerId")
+  public Integer getDataControllerId() {
+    return dataControllerId;
+  }
+  public void setDataControllerId(Integer dataControllerId) {
+    this.dataControllerId = dataControllerId;
   }
 
   
@@ -86,7 +101,8 @@ public class UserConsentWebFormDTO  {
     
     sb.append("  collectionMethod: ").append(collectionMethod).append("\n");
     sb.append("  subjectName: ").append(subjectName).append("\n");
-    sb.append("  dataController: ").append(dataController).append("\n");
+    sb.append("  sguid: ").append(sguid).append("\n");
+    sb.append("  dataControllerId: ").append(dataControllerId).append("\n");
     sb.append("  services: ").append(services).append("\n");
     sb.append("}\n");
     return sb.toString();

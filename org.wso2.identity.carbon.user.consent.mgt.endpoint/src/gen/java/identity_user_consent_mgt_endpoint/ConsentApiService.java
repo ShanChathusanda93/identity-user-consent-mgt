@@ -12,7 +12,6 @@ import identity_user_consent_mgt_endpoint.dto.ServiceInputDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentRevokeListDTO;
-import identity_user_consent_mgt_endpoint.dto.ConsentDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceListDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceCRDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
@@ -41,7 +40,6 @@ public abstract class ConsentApiService {
     public abstract Response consentReceiptPost(ConsentReceiptDTO userDetails);
     public abstract Response consentReceiptWebFormPost(UserConsentWebFormDTO userConsentWebForm);
     public abstract Response consentRevokePut(ConsentRevokeListDTO revokingConsent);
-    public abstract Response consentSubjectNameGet(String subjectName);
     public abstract Response consentSubjectNameReceiptGet(String subjectName);
     public abstract Response consentSubjectNameServiceListGet(String subjectName);
     public abstract Response consentSubjectNameServicesServiceIdGet(String subjectName,Integer serviceId);

@@ -63,23 +63,25 @@ produces:
   - application/json
 
 paths:
-  /consent/{subjectName}:
-    get:
-      summary: "Getting consent details"
-      description: "Getting consent details of an user to populate the UI"
-      tags:
-        - "Data Retrieval"
-      parameters:
-        - $ref: '#/parameters/subjectName'
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: '#/definitions/Consent'
-        400:
-          description: "invalid subject name supplied"
-        404:
-          description: "consent for this subject name not found"
+#  /consent/{subjectName}:
+#    get:
+#      summary: "Getting consent details"
+#      description: "Getting consent details of an user to populate the UI"
+#      tags:
+#        - "Data Retrieval"
+#      parameters:
+#        - $ref: '#/parameters/subjectName'
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            $ref: '#/definitions/Consent'
+#        400:
+#          description: "invalid subject name supplied"
+#        404:
+#          description: "consent for this subject name not found"
+#
+#this one is similar to /consent/{subjectName}/serviceList
 
   /consent/{subjectName}/thirdParty:
     get:
@@ -712,8 +714,11 @@ definitions:
         type: "string"
       subjectName:
         type: "string"
-      dataController:
+      sguid:
         type: "string"
+      dataControllerId:
+        type: "integer"
+        format: "int32"
       services:
         type: "array"
         items:
