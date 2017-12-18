@@ -15,6 +15,7 @@ import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
 
+import javax.naming.PartialResultException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -330,7 +331,7 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             for (int j = 0; j < services.length; j++) {
                 for (int i = 0; i < services[j].getPurposeDetailsArr().length; i++) {
                     String query = "INSERT INTO SERVICE_MAP_CRID (SGUID,SERVICE_ID,PURPOSE_ID,EXACT_TERMINATION," +
-                            "CONSENT_TIME,COLLECTION_METHOD,STATUS) VALUES (?,?,?,?,?,?,?);";
+                            "CONSENT_TIME,COLLECTION_METHOD,STATUS,CONSENT_TYPE) VALUES (?,?,?,?,?,?,?,?);";
                     try {
                         preparedStatement = connection.prepareStatement(query);
                         preparedStatement.setString(1, consentDO.getSGUID());
@@ -342,6 +343,7 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                         preparedStatement.setString(6, services[j].getPurposeDetailsArr()[i]
                                 .getCollectionMethod());
                         preparedStatement.setString(7, "Approved");
+                        preparedStatement.setString(8,services[j].getPurposeDetailsArr()[i].getConsentType());
                         preparedStatement.executeUpdate();
                         log.info("Successfully added the user consents of the " + consentDO.getPiiPrincipalId()
                                 + " to the database");
@@ -1120,6 +1122,8 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement=null;
+            PreparedStatement preparedStatementPurposeId=null;
+            ResultSet resultSet=null;
 
             String query = "INSERT INTO user_consent.PURPOSES(PURPOSE,PRIMARY_PURPOSE,TERMINATION,THIRD_PARTY_DIS," +
                     "THIRD_PARTY_ID) VALUES(?,?,?,?,?)";
@@ -1135,9 +1139,67 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             } catch (SQLException e) {
                 log.error("Database error. Could not add purpose details. - "+e.getMessage(),e);
                 throw new DataAccessException("Database error. Could not add purpose details. - "+e.getMessage(),e);
-            } finally {
-                DBUtils.closeAllConnections(connection,preparedStatement);
             }
+
+            String purposeIdQuery="SELECT A.PURPOSE_ID FROM PURPOSES AS A WHERE PURPOSE=?";
+            try {
+                preparedStatementPurposeId=connection.prepareStatement(purposeIdQuery);
+                preparedStatement.setString(1,purpose.getPurpose());
+                resultSet=preparedStatementPurposeId.executeQuery();
+                resultSet.first();
+                mapPurposeWithPurposeCategories(connection,resultSet.getInt(1),purpose.getPurposeCategoryDOArr());
+                mapPurposeWithPersonalInfoCategories(connection,resultSet.getInt(1),purpose.getpiiCategoryArr());
+            } catch (SQLException e) {
+                log.error("Database error. Could not get purpose id. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get purpose id. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,preparedStatementPurposeId,resultSet);
+            }
+        }
+    }
+
+    private void mapPurposeWithPurposeCategories(Connection connection,int purposeId,PurposeCategoryDO[]
+            purposeCategories) throws DataAccessException{
+        PreparedStatement preparedStatement=null;
+        String query="INSERT INTO PURPOSE_MAP_PURPOSE_CAT(PURPOSE_ID,PURPOSE_CAT_ID)\n" +
+                "VALUES (?,?) ON DUPLICATE KEY UPDATE PURPOSE_CAT_ID=?;";
+        try {
+            for (PurposeCategoryDO purposeCategory:purposeCategories) {
+                preparedStatement=connection.prepareStatement(query);
+                preparedStatement.setInt(1, purposeId);
+                preparedStatement.setInt(2,purposeCategory.getPurposeCatId());
+                preparedStatement.setInt(3,purposeCategory.getPurposeCatId());
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            log.error("Database error. Could not map purpose to purpose category. - "+e.getMessage(),e);
+            throw new DataAccessException("Database error. Could not map purpose to purpose category. - "+e
+                    .getMessage(),e);
+        } finally {
+            DBUtils.closeAllConnections(connection,preparedStatement);
+        }
+    }
+
+    private void mapPurposeWithPersonalInfoCategories(Connection connection,int purposeId,PiiCategoryDO[]
+            piiCategories) throws DataAccessException{
+        PreparedStatement preparedStatement=null;
+        String query="INSERT INTO PURPOSE_MAP_PII_CAT(PURPOSE_ID, PII_CAT_ID) VALUES (?,?) ON DUPLICATE KEY UPDATE " +
+                "PII_CAT_ID=?;";
+        try {
+            for(PiiCategoryDO piiCategory:piiCategories) {
+                preparedStatement=connection.prepareStatement(query);
+                preparedStatement.setInt(1, purposeId);
+                preparedStatement.setInt(2,piiCategory.getPiiCatId());
+                preparedStatement.setInt(3,piiCategory.getPiiCatId());
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            log.error("Database error. Could not map purpose to personally identifiable info category. - "+e
+                    .getMessage(),e);
+            throw new DataAccessException("Database error. Could not map purpose to personally identifiable info " +
+                    "category. - "+e.getMessage(),e);
+        } finally {
+            DBUtils.closeAllConnections(connection,preparedStatement);
         }
     }
 
@@ -1164,6 +1226,11 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
                 preparedStatement.setInt(5, purpose.getThirdPartyId());
                 preparedStatement.setInt(6, purpose.getPurposeId());
                 preparedStatement.executeUpdate();
+                //--have to delete all the mappings first then insert again..coz there will be scenarios like delete
+                // one and add another one..to address that I use delete and then insert..
+                deleteMappingsWithPurpose(connection,purpose.getPurposeId());
+                mapPurposeWithPurposeCategories(connection,purpose.getPurposeId(),purpose.getPurposeCategoryDOArr());
+                mapPurposeWithPersonalInfoCategories(connection,purpose.getPurposeId(),purpose.getpiiCategoryArr());
                 log.info("Successfully updated the purpose details to the database.");
             } catch (SQLException e) {
                 log.error("Database error. Could not update purpose details. - "+e.getMessage(),e);
@@ -1171,6 +1238,43 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             } finally {
                 DBUtils.closeAllConnections(connection,preparedStatement);
             }
+        }
+    }
+
+    private void deleteMappingsWithPurpose(Connection connection,int purposeId) throws DataAccessException {
+        deletePurposeCatMapWithPurpose(connection,purposeId);
+        deletePersonalInfoCatMapWithPurpose(connection,purposeId);
+    }
+
+    private void deletePurposeCatMapWithPurpose(Connection connection,int purposeId) throws DataAccessException{
+        PreparedStatement deletePurposeCatStat=null;
+        String deletePurposeCat="DELETE FROM PURPOSE_MAP_PURPOSE_CAT WHERE PURPOSE_ID=?";
+        try {
+            deletePurposeCatStat=connection.prepareStatement(deletePurposeCat);
+            deletePurposeCatStat.setInt(1,purposeId);
+            deletePurposeCatStat.executeUpdate();
+            deletePersonalInfoCatMapWithPurpose(connection,purposeId);
+        } catch (SQLException e) {
+            log.error("Database error. Could not delete purpose category. - "+e.getMessage(),e);
+            throw new DataAccessException("Database error. Could not delete purpose categories. - "+e.getMessage(),e);
+        } finally {
+            DBUtils.closeAllConnections(connection,deletePurposeCatStat);
+        }
+    }
+
+    private void deletePersonalInfoCatMapWithPurpose(Connection connection,int purposeId)throws DataAccessException{
+        PreparedStatement deletePersonalInfoCatStat=null;
+        String deletePersonalInfoCat="DELETE FROM PURPOSE_MAP_PII_CAT WHERE PURPOSE_ID=?";
+        try {
+            deletePersonalInfoCatStat=connection.prepareStatement(deletePersonalInfoCat);
+            deletePersonalInfoCatStat.setInt(1,purposeId);
+            deletePersonalInfoCatStat.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Database error. Could not delete personally identifiable categories. - "+e.getMessage(),e);
+            throw new DataAccessException("Database error. Could not delete personally identifiable categories. - "+e
+                    .getMessage(),e);
+        } finally {
+            DBUtils.closeAllConnections(connection,deletePersonalInfoCatStat);
         }
     }
 
@@ -1188,11 +1292,12 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             PreparedStatement preparedStatement=null;
 
             String query = "INSERT INTO user_consent.SERVICES(SERVICE_DESCRIPTION) VALUES(?);";
-
             try {
                 preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, service.getServiceDescription());
                 preparedStatement.executeUpdate();
+                int serviceId=getServiceIdByName(connection,service.getServiceDescription());
+                mapServiceWithPurposes(connection,serviceId,service);
                 log.info("Successfully added service details to the database");
             } catch (SQLException e) {
                 log.error("Database error. Could not add service details to the database. - "+e.getMessage(),e);
@@ -1201,6 +1306,41 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             } finally {
                 DBUtils.closeAllConnections(connection,preparedStatement);
             }
+        }
+    }
+
+    private int getServiceIdByName(Connection connection,String serviceName) throws DataAccessException{
+        PreparedStatement preparedStatement=null;
+        ResultSet resultSet=null;
+        int serviceId;
+        String query="SELECT SERVICE_ID FROM SERVICES WHERE SERVICE_DESCRIPTION=?";
+        try {
+            preparedStatement=connection.prepareStatement(query);
+            preparedStatement.setString(1,serviceName);
+            resultSet=preparedStatement.executeQuery();
+            resultSet.first();
+            serviceId=resultSet.getInt(1);
+        } catch (SQLException e) {
+            log.error("Database error. Could not get the service id. - "+e.getMessage(),e);
+            throw new DataAccessException("Database error. Could not get the service id. - "+e.getMessage(),e);
+        }
+        return serviceId;
+    }
+
+    private void mapServiceWithPurposes(Connection connection,int serviceId,ServicesDO services) throws
+            DataAccessException{
+        PreparedStatement preparedStatement=null;
+        String query="INSERT INTO SERVICE_MAP_PURPOSE(SERVICE_ID,PURPOSE_ID) VALUES(?,?);";
+        try {
+            for(PurposeDetailsDO purpose:services.getPurposeDetailsArr()) {
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1,serviceId);
+                preparedStatement.setInt(2,purpose.getPurposeId());
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            log.error("Database error. Could not map service with purposes. - "+e.getMessage(),e);
+            throw new DataAccessException("Database error. Could not map service with purposes. - "+e.getMessage(),e);
         }
     }
 
@@ -1217,12 +1357,15 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement=null;
 
-            String query = "UPDATE user_consent.SERVICES SET SERVICE_DESCRIPTION=?;";
+            String query = "UPDATE user_consent.SERVICES SET SERVICE_DESCRIPTION=? WHERE SERVICE_ID=?;";
 
             try {
                 preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, service.getServiceDescription());
+                preparedStatement.setInt(2,service.getServiceId());
                 preparedStatement.executeUpdate();
+                deleteServiceWithPurposesMap(connection,service.getServiceId());
+                mapServiceWithPurposes(connection,service.getServiceId(),service);
                 log.info("Successfully updated the service details to the database");
             } catch (SQLException e) {
                 log.error("Database error. Could not update service details. - "+e.getMessage(),e);
@@ -1230,6 +1373,22 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             } finally {
                 DBUtils.closeAllConnections(connection,preparedStatement);
             }
+        }
+    }
+
+    private void deleteServiceWithPurposesMap(Connection connection,int serviceId) throws DataAccessException{
+        PreparedStatement preparedStatement=null;
+        String query="DELETE FROM SERVICE_MAP_PURPOSE WHERE SERVICE_ID=?";
+        try {
+            preparedStatement=connection.prepareStatement(query);
+            preparedStatement.setInt(1,serviceId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Database error. Could not delete the service mapping with purposes. - "+e.getMessage(),e);
+            throw new DataAccessException("Database error. Could not delete the service mapping with purposes. - "+e
+                    .getMessage(),e);
+        } finally {
+            DBUtils.closeAllConnections(connection,preparedStatement);
         }
     }
 
@@ -1652,6 +1811,77 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             }
         }
         return null;
+    }
+
+    public List<PurposeCategoryDO> getPurposeCategories() throws DataAccessException{
+        List<PurposeCategoryDO> purposeCategoryList=new ArrayList<>();
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
+
+            String query="SELECT * FROM PURPOSE_CATEGORY;";
+
+            try {
+                preparedStatement=connection.prepareStatement(query);
+                resultSet=preparedStatement.executeQuery();
+                while (resultSet.next()){
+                    PurposeCategoryDO purposeCategory=new PurposeCategoryDO();
+                    purposeCategory.setPurposeCatId(resultSet.getInt(1));
+                    purposeCategory.setPurposeCatShortCode(resultSet.getString(2));
+                    purposeCategory.setPurposeCatDes(resultSet.getString(3));
+                    purposeCategoryList.add(purposeCategory);
+                }
+            } catch (SQLException e) {
+                log.error("Database error. Could not get the purpose categories. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get the purpose categories. - "+e.getMessage
+                        (),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,preparedStatement,resultSet);
+            }
+        }
+        return purposeCategoryList;
+    }
+
+    public void addPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException{
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+            ResultSet resultSet=null;
+
+            String query="INSERT INTO PURPOSE_CATEGORY (PURPOSE_CAT_SHORT_CODE, PURPOSE_CAT_DESCRIPTION)\n" +
+                    "VALUES (?,?);";
+
+            try {
+                preparedStatement=connection.prepareStatement(query);
+                preparedStatement.setString(1,purposeCategory.getPurposeCatShortCode());
+                preparedStatement.setString(2,purposeCategory.getPurposeCatDes());
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                log.error("Database error. Could not add purpose category. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Colud not add purpose category. - "+e.getMessage(),e);
+            }
+        }
+    }
+
+    public void updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException{
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+            PreparedStatement preparedStatement=null;
+
+            String query=SQLQueries.PURPOSE_CATEGORY_UPDATE_QUERY;
+
+            try {
+                preparedStatement=connection.prepareStatement(query);
+                preparedStatement.setString(1,purposeCategory.getPurposeCatShortCode());
+                preparedStatement.setString(2,purposeCategory.getPurposeCatDes());
+                preparedStatement.setInt(3,purposeCategory.getPurposeCatId());
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                log.error("Database error. Could not update purpose category. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not update purpose category. - "+e.getMessage(),e);
+            }
+        }
     }
 
     /**

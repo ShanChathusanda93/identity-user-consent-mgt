@@ -6,6 +6,7 @@ import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessExc
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
 
@@ -36,4 +37,7 @@ public interface ConsentBackend {
     public void updatePurpose(PurposeDetailsDO purpose) throws DataAccessException;
     public void updateService(ServicesDO services) throws DataAccessException;
     public void revokeConsent(String subjectName,List<ServicesDO> servicesList) throws DataAccessException;
+    public List<PurposeCategoryDO> getPurposeCategories() throws DataAccessException;
+    public void setPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
+    public void updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
 }

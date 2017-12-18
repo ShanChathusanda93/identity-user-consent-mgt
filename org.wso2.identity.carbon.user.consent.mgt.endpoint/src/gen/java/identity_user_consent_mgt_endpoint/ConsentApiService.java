@@ -6,6 +6,8 @@ import identity_user_consent_mgt_endpoint.dto.*;
 import identity_user_consent_mgt_endpoint.dto.DataControllerInputDTO;
 import identity_user_consent_mgt_endpoint.dto.PiiCatListDTO;
 import identity_user_consent_mgt_endpoint.dto.PiiCategoryDTO;
+import identity_user_consent_mgt_endpoint.dto.PurposeCategoryListDTO;
+import identity_user_consent_mgt_endpoint.dto.PurposeCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeListDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeInputDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceInputDTO;
@@ -31,6 +33,9 @@ public abstract class ConsentApiService {
     public abstract Response consentConfigurationPersonalInfoCategoryGet();
     public abstract Response consentConfigurationPersonalInfoCategoryPost(PiiCategoryDTO piiCategory);
     public abstract Response consentConfigurationPersonalInfoCategoryPut(PiiCategoryDTO piiCategory);
+    public abstract Response consentConfigurationPurposeCategoryGet();
+    public abstract Response consentConfigurationPurposeCategoryPost(PurposeCategoryDTO purposeCategory);
+    public abstract Response consentConfigurationPurposeCategoryPut(PurposeCategoryDTO purposeCategory);
     public abstract Response consentConfigurationPurposeGet();
     public abstract Response consentConfigurationPurposePost(PurposeInputDTO purpose);
     public abstract Response consentConfigurationPurposePut(PurposeInputDTO purpose);

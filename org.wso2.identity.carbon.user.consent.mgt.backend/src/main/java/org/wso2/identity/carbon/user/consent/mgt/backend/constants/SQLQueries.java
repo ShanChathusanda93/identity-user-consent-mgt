@@ -189,4 +189,8 @@ public class SQLQueries {
             "PUBLIC_KEY=?\n" +
             "POLICY_URL=?\n" +
             "WHERE DATA_CONTROLLER_ID=?;";
+
+    public static final String PURPOSE_CATEGORY_UPDATE_QUERY="UPDATE PURPOSE_CATEGORY\n"+
+            "SET PURPOSE_CAT_SHORT_CODE=?,PURPOSE_CAT_DESCRIPTION=?\n"+
+            "WHERE PURPOSE_CAT_ID=?;";
 }

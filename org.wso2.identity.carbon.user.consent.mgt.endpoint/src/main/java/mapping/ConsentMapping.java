@@ -394,4 +394,31 @@ public class ConsentMapping {
         }
         return servicesList;
     }
+
+    public static List<PurposeCategoryDTO> getPurposeCategories(List<PurposeCategoryDO> purposeCategoryList){
+        List<PurposeCategoryDTO> purposeCategoryDTOList=new ArrayList<>();
+        for(PurposeCategoryDO purposeCategory:purposeCategoryList){
+            PurposeCategoryDTO purposeCategoryDTO=new PurposeCategoryDTO();
+            purposeCategoryDTO.setPurposeCategoryId(purposeCategory.getPurposeCatId());
+            purposeCategoryDTO.setPurposeCategoryShortCode(purposeCategory.getPurposeCatShortCode());
+            purposeCategoryDTO.setDescription(purposeCategory.getPurposeCatDes());
+            purposeCategoryDTOList.add(purposeCategoryDTO);
+        }
+        return purposeCategoryDTOList;
+    }
+
+    public static PurposeCategoryDO setPurposeCategory(PurposeCategoryDTO purposeCategoryDTO){
+        PurposeCategoryDO purposeCategory =new PurposeCategoryDO();
+        purposeCategory.setPurposeCatShortCode(purposeCategoryDTO.getPurposeCategoryShortCode());
+        purposeCategory.setPurposeCatDes(purposeCategoryDTO.getDescription());
+        return purposeCategory;
+    }
+
+    public static PurposeCategoryDO updatePurposeCategory(PurposeCategoryDTO purposeCategoryDTO){
+        PurposeCategoryDO purposeCategory=new PurposeCategoryDO();
+        purposeCategory.setPurposeCatId(purposeCategoryDTO.getPurposeCategoryId());
+        purposeCategory.setPurposeCatShortCode(purposeCategoryDTO.getPurposeCategoryShortCode());
+        purposeCategory.setPurposeCatDes(purposeCategoryDTO.getDescription());
+        return purposeCategory;
+    }
 }

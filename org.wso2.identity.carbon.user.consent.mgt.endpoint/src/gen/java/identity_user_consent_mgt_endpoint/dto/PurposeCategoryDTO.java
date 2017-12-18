@@ -17,11 +17,14 @@ public class PurposeCategoryDTO  {
   
   private Integer pursopeId = null;
   
-  @NotNull
+  
   private Integer purposeCategoryId = null;
   
   @NotNull
   private String purposeCategoryShortCode = null;
+  
+  
+  private String description = null;
 
   
   /**
@@ -38,7 +41,7 @@ public class PurposeCategoryDTO  {
   
   /**
    **/
-  @ApiModelProperty(required = true, value = "")
+  @ApiModelProperty(value = "")
   @JsonProperty("purposeCategoryId")
   public Integer getPurposeCategoryId() {
     return purposeCategoryId;
@@ -60,6 +63,18 @@ public class PurposeCategoryDTO  {
   }
 
   
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("description")
+  public String getDescription() {
+    return description;
+  }
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  
 
   @Override
   public String toString()  {
@@ -69,6 +84,7 @@ public class PurposeCategoryDTO  {
     sb.append("  pursopeId: ").append(pursopeId).append("\n");
     sb.append("  purposeCategoryId: ").append(purposeCategoryId).append("\n");
     sb.append("  purposeCategoryShortCode: ").append(purposeCategoryShortCode).append("\n");
+    sb.append("  description: ").append(description).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

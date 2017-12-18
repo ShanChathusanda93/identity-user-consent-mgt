@@ -7,6 +7,7 @@ import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentRevokeListDTO;
 import identity_user_consent_mgt_endpoint.dto.DataControllerInputDTO;
 import identity_user_consent_mgt_endpoint.dto.PiiCategoryDTO;
+import identity_user_consent_mgt_endpoint.dto.PurposeCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeInputDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceCRDTO;
@@ -21,6 +22,7 @@ import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessExc
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.service.ConsentBackend;
@@ -271,5 +273,39 @@ public class ConsentApiServiceImpl extends ConsentApiService {
             e.printStackTrace();
         }
         return Response.ok().entity(consent).build();
+    }
+
+    @Override
+    public Response consentConfigurationPurposeCategoryGet() {
+        List<PurposeCategoryDTO> purposeCategoryDTOList=new ArrayList<>();
+        try {
+            List<PurposeCategoryDO> purposeCategoryList=getConsentService().getPurposeCategories();
+            purposeCategoryDTOList=ConsentMapping.getPurposeCategories(purposeCategoryList);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(purposeCategoryDTOList).build();
+    }
+
+    @Override
+    public Response consentConfigurationPurposeCategoryPost(PurposeCategoryDTO purposeCategory) {
+        PurposeCategoryDO purposeCategoryDO=ConsentMapping.setPurposeCategory(purposeCategory);
+        try {
+            getConsentService().setPurposeCategory(purposeCategoryDO);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+
+    @Override
+    public Response consentConfigurationPurposeCategoryPut(PurposeCategoryDTO purposeCategory) {
+        PurposeCategoryDO purposeCategoryDO=ConsentMapping.updatePurposeCategory(purposeCategory);
+        try {
+            getConsentService().updatePurposeCategory(purposeCategoryDO);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 }

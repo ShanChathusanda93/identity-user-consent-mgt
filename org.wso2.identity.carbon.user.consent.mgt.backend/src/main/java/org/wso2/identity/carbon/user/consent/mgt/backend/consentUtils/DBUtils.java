@@ -11,6 +11,14 @@ import java.sql.SQLException;
 public class DBUtils {
     private static Log log = LogFactory.getLog(DBUtils.class);
 
+    public static void closeAllConnections(Connection connection,PreparedStatement preparedStatementOne,
+                                           PreparedStatement preparedStatementTwo,ResultSet resultSet){
+        closeDbConnection(connection);
+        closePreparedStat(preparedStatementOne);
+        closePreparedStat(preparedStatementTwo);
+        closeResultSet(resultSet);
+    }
+
     public static void closeAllConnections(Connection connection, PreparedStatement preparedStatement, ResultSet
             resultSet) {
         closeDbConnection(connection);

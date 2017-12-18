@@ -19,13 +19,14 @@ public class DBConnect {
         } catch (Exception e) {
             System.out.println("Error :" + e);
             return false;
-        } finally {
+        }
+        /*finally {
             try {
                 connection.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
     public Connection getConnection() {

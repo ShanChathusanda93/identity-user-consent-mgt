@@ -1,7 +1,7 @@
 package org.wso2.identity.carbon.user.consent.mgt.backend.model;
 
 public class PurposeDetailsDO {
-    private String SGUID;
+    private String sguid;
     private int purposeId;
     private String purpose;
     private int purposeCatId;
@@ -23,13 +23,11 @@ public class PurposeDetailsDO {
     public PurposeDetailsDO() {
     }
 
-    public PurposeDetailsDO(String SGUID, int purposeId, String purpose, String primaryPurpose, String termination,
+    public PurposeDetailsDO(String sguid, int purposeId, String purpose, String primaryPurpose, String termination,
                             String thirdPartyDis, int thirdPartyId, String thirdPartyName, PiiCategoryDO[] piiCategoryArr) {
-        this.SGUID = SGUID;
+        this.sguid = sguid;
         this.purposeId = purposeId;
         this.purpose = purpose;
-        this.purposeCatId = purposeCatId;
-        this.purposeCatShortCode = purposeCatShortCode;
         this.primaryPurpose = primaryPurpose;
         this.termination = termination;
         this.thirdPartyDis = thirdPartyDis;
@@ -38,9 +36,9 @@ public class PurposeDetailsDO {
         this.piiCategoryArr = piiCategoryArr;
     }
 
-    public PurposeDetailsDO(String SGUID, int purposeId, String purpose, String primaryPurpose, String termination,
+    public PurposeDetailsDO(String sguid, int purposeId, String purpose, String primaryPurpose, String termination,
                             String thirdPartyDis, int thirdPartyId, String thirdPartyName, PiiCategoryDO piiCategory) {
-        this.SGUID = SGUID;
+        this.sguid = sguid;
         this.purposeId = purposeId;
         this.purpose = purpose;
         this.primaryPurpose = primaryPurpose;
@@ -52,11 +50,11 @@ public class PurposeDetailsDO {
     }
 
     public String getSGUID() {
-        return SGUID;
+        return sguid;
     }
 
-    public void setSGUID(String SGUID) {
-        this.SGUID = SGUID;
+    public void setSGUID(String sguid) {
+        this.sguid = sguid;
     }
 
     public int getPurposeId() {
@@ -82,6 +80,7 @@ public class PurposeDetailsDO {
     public void setPurposeCatId(int purposeCatId) {
         this.purposeCatId = purposeCatId;
     }
+
 
     public String getPurposeCatShortCode() {
         return purposeCatShortCode;

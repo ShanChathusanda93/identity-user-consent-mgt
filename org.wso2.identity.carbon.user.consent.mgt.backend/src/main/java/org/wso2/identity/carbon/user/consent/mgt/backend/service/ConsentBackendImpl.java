@@ -7,6 +7,7 @@ import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessExc
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
 
@@ -138,5 +139,29 @@ public class ConsentBackendImpl implements ConsentBackend {
     public void updateService(ServicesDO service) throws DataAccessException {
         ConsentDao consentDao=new ConsentDao();
         consentDao.updateServiceDetails(service);
+    }
+
+    @Override
+    public void revokeConsent(String subjectName, List<ServicesDO> servicesList) throws DataAccessException {
+//        Complete the impl
+    }
+
+    @Override
+    public List<PurposeCategoryDO> getPurposeCategories() throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        List<PurposeCategoryDO> purposeCategoryList=consentDao.getPurposeCategories();
+        return purposeCategoryList;
+    }
+
+    @Override
+    public void setPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.addPurposeCategory(purposeCategory);
+    }
+
+    @Override
+    public void updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.updatePurposeCategory(purposeCategory);
     }
 }

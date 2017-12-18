@@ -9,6 +9,8 @@ import io.swagger.annotations.ApiParam;
 import identity_user_consent_mgt_endpoint.dto.DataControllerInputDTO;
 import identity_user_consent_mgt_endpoint.dto.PiiCatListDTO;
 import identity_user_consent_mgt_endpoint.dto.PiiCategoryDTO;
+import identity_user_consent_mgt_endpoint.dto.PurposeCategoryListDTO;
+import identity_user_consent_mgt_endpoint.dto.PurposeCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeListDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeInputDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceInputDTO;
@@ -124,6 +126,52 @@ public class ConsentApi  {
     public Response consentConfigurationPersonalInfoCategoryPut(@ApiParam(value = "Details of a personally identifiable info category" ,required=true ) PiiCategoryDTO piiCategory)
     {
     return delegate.consentConfigurationPersonalInfoCategoryPut(piiCategory);
+    }
+    @GET
+    @Path("/configuration/purpose-category")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Get purpose category", notes = "Get purpose category details from the consent database", response = PurposeCategoryListDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful operation"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationPurposeCategoryGet()
+    {
+    return delegate.consentConfigurationPurposeCategoryGet();
+    }
+    @POST
+    @Path("/configuration/purpose-category")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Add purpose category", notes = "Add a purpose category to the consent database", response = void.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 201, message = "Successfully created the purpose category"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationPurposeCategoryPost(@ApiParam(value = "purpose category details" ,required=true ) PurposeCategoryDTO purposeCategory)
+    {
+    return delegate.consentConfigurationPurposeCategoryPost(purposeCategory);
+    }
+    @PUT
+    @Path("/configuration/purpose-category")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Update purpose category", notes = "Update purpose category details to the consent database", response = void.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successfully updated the purpose category"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal error") })
+
+    public Response consentConfigurationPurposeCategoryPut(@ApiParam(value = "purpose category details" ,required=true ) PurposeCategoryDTO purposeCategory)
+    {
+    return delegate.consentConfigurationPurposeCategoryPut(purposeCategory);
     }
     @GET
     @Path("/configuration/purpose")

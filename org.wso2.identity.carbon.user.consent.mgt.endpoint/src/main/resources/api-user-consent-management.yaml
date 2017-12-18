@@ -203,6 +203,43 @@ paths:
         500:
           description: "internal server error"
 
+  /consent/configuration/purpose-category:
+    post:
+      summary: "Add purpose category"
+      description: "Add a purpose category to the consent database"
+      parameters:
+        - $ref: '#/parameters/purposeCategory'
+      responses:
+        201:
+          description: "Successfully created the purpose category"
+        500:
+          description: "Internal server error"
+
+    get:
+      summary: "Get purpose category"
+      description: "Get purpose category details from the consent database"
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            $ref: '#/definitions/PurposeCategoryList'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
+    put:
+      summary: "Update purpose category"
+      description: "Update purpose category details to the consent database"
+      parameters:
+        - $ref: '#/parameters/purposeCategory'
+      responses:
+        200:
+          description: "Successfully updated the purpose category"
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal error"
+
   /consent/configuration/personalInfoCategory:
     post:
       summary: "Adding a PII category"
@@ -268,7 +305,7 @@ paths:
         200:
           description: "successful operation"
           schema:
-            $ref: '#/definitions/ServiceInput'
+            $ref: '#/definitions/ServiceWebForm'
         404:
            description: "content not found"
         500:
@@ -461,8 +498,9 @@ definitions:
         format: "int32"
       purposeCategoryShortCode:
         type: "string"
+      description:
+        type: "string"
     required: [
-      purposeCategoryId,
       purposeCategoryShortCode
     ]
 
@@ -478,37 +516,41 @@ definitions:
       purposeName
     ]
 
-  PurposeInput:
-    type: "object"
-    properties:
-      purposeId:
-        type: "integer"
-        format: "int32"
-      purpose:
-        type: "string"
-      purposeCat:
-        type: "integer"
-        format: "int32"
-      primaryPurpose:
-        type: "integer"
-        format: "int32"
-      termination:
-        type: "integer"
-        format: "int32"
-      thirdPartyDisclosure:
-        type: "integer"
-        format: "int32"
-      thirdPartyId:
-        type: "integer"
-        format: "int32"
-    required: [
-      purpose,
-      purposeCat,
-      primaryPurpose,
-      termination,
-      thirdPartyDisclosure,
-      thirdPartyId
-    ]
+#  PurposeInput:
+#    type: "object"
+#    properties:
+#      purposeId:
+#        type: "integer"
+#        format: "int32"
+#      purpose:
+#        type: "string"
+#      primaryPurpose:
+#        type: "integer"
+#        format: "int32"
+#      termination:
+#        type: "integer"
+#        format: "int32"
+#      thirdPartyDisclosure:
+#        type: "integer"
+#        format: "int32"
+#      thirdPartyId:
+#        type: "integer"
+#        format: "int32"
+#      purposeCategories:
+#        type: "array"
+#        items:
+#          $ref: '#/definitions/PurposeCategory'
+#      piiCategories:
+#        type: "array"
+#        items:
+#          $ref: '#/definitions/PiiCategory'
+#    required: [
+#      purpose,
+#      primaryPurpose,
+#      termination,
+#      thirdPartyDisclosure,
+#      thirdPartyId
+#    ]
 
   PurposeList:
     type: "object"
@@ -618,17 +660,17 @@ definitions:
       purposes
     ]
 
-  ServiceInput:
-    type: "object"
-    properties:
-      serviceId:
-        type: "integer"
-        format: "int32"
-      serviceName:
-        type: "string"
-    required: [
-      serviceName
-    ]
+#  ServiceInput:
+#    type: "object"
+#    properties:
+#      serviceId:
+#        type: "integer"
+#        format: "int32"
+#      serviceName:
+#        type: "string"
+#    required: [
+#      serviceName
+#    ]
 
   ServiceList:
     type: "object"
@@ -801,6 +843,15 @@ definitions:
       dataControllerId:
         type: "integer"
         format: "int32"
+
+  PurposeCategoryList:
+    type: "object"
+    properties:
+      purposeCategoryList:
+        type: "array"
+        items:
+          $ref: '#/definitions/PurposeCategory'
+
     
 parameters:
   subjectName:
@@ -872,7 +923,7 @@ parameters:
     description: "Details of a purpose"
     required: true
     schema:
-      $ref: '#/definitions/PurposeInput'
+      $ref: '#/definitions/Purpose'
 
   serviceName:
     name: "serviceName"
@@ -887,7 +938,7 @@ parameters:
     description: "Details of a service"
     required: true
     schema:
-      $ref: '#/definitions/ServiceInput'
+      $ref: '#/definitions/ServiceWebForm'
 
   revokingConsent:
     name: "revokingConsent"
@@ -904,3 +955,11 @@ parameters:
     required: true
     type: "integer"
     format: "int32"
+
+  purposeCategory:
+    name: "purposeCategory"
+    in: "body"
+    description: "purpose category details"
+    required: true
+    schema:
+      $ref: '#/definitions/PurposeCategory'
