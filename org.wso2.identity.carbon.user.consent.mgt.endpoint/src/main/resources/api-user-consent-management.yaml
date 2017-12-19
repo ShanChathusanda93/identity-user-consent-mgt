@@ -371,6 +371,44 @@ paths:
         405:
           description: "method not allowed"
 
+  /consent/configuration/third-party:
+    post:
+      summary: "Add third party"
+      description: "Add third party details to the consent database"
+      parameters:
+        - $ref: '#/parameters/thirdParty'
+      responses:
+        201:
+          description: "Successfully created the third party."
+        500:
+          description: "Internal server error"
+
+    get:
+      summary: "Get third parties"
+      description: "Get third party details from the consent database"
+      responses:
+        201:
+          description: "Successful operation."
+          schema:
+            type: "array"
+            items:
+              $ref: '#/definitions/ThirdParty'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
+
+    put:
+      summary: "Update third party"
+      description: "Update third party details to the database"
+      parameters:
+        - $ref: '#/parameters/thirdParty'
+      responses:
+        200:
+          description: "Successfully updated the third party to the consent database"
+        500:
+          description: "Internal server error"
+
   /consent/revoke:
     put:
       summary: "Revoke consent of an user"
@@ -471,6 +509,9 @@ definitions:
       termination:
         type: "string"
       thirdPartyDisclosure:
+        type: "integer"
+        format: "int32"
+      thirdPartyId:
         type: "integer"
         format: "int32"
       thirdPartyName:
@@ -852,6 +893,14 @@ definitions:
         items:
           $ref: '#/definitions/PurposeCategory'
 
+  ThirdParty:
+    type: "object"
+    properties:
+      third-party-id:
+        type: "integer"
+        format: "int32"
+      third-party-name:
+        type: "string"
     
 parameters:
   subjectName:
@@ -963,3 +1012,11 @@ parameters:
     required: true
     schema:
       $ref: '#/definitions/PurposeCategory'
+
+  thirdParty:
+    name: "thirdParty"
+    in: "body"
+    description: "third party details"
+    required: true
+    schema:
+      $ref: '#/definitions/ThirdParty'

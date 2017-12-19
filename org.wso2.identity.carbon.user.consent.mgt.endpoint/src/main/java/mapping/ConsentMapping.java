@@ -118,7 +118,7 @@ public class ConsentMapping {
         return purposeDTOList;
     }
 
-    public static PurposeDetailsDO setConsentConfigurationPurpose(PurposeInputDTO purpose) {
+    public static PurposeDetailsDO setConsentConfigurationPurpose(PurposeDTO purpose) {
         PurposeDetailsDO purposeDetailsDO = new PurposeDetailsDO();
         purposeDetailsDO.setPurpose(purpose.getPurpose());
         purposeDetailsDO.setPrimaryPurpose(String.valueOf(purpose.getPrimaryPurpose()));
@@ -366,7 +366,7 @@ public class ConsentMapping {
         return piiCategoryDO;
     }
 
-    public static PurposeDetailsDO updatePurpose(PurposeInputDTO purposeDTO){
+    public static PurposeDetailsDO updatePurpose(PurposeDTO purposeDTO){
         PurposeDetailsDO purpose=new PurposeDetailsDO();
         purpose.setPurposeId(purposeDTO.getPurposeId());
         purpose.setPurpose(purposeDTO.getPurpose());

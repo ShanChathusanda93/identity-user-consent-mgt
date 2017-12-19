@@ -12,14 +12,14 @@ import identity_user_consent_mgt_endpoint.dto.PiiCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeCategoryListDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeListDTO;
-import identity_user_consent_mgt_endpoint.dto.PurposeInputDTO;
-import identity_user_consent_mgt_endpoint.dto.ServiceInputDTO;
+import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
+import identity_user_consent_mgt_endpoint.dto.ServiceWebFormDTO;
+import identity_user_consent_mgt_endpoint.dto.ThirdPartyDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentRevokeListDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceListDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceCRDTO;
-import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentByThirdPartyDTO;
 
 import java.util.List;
@@ -199,7 +199,7 @@ public class ConsentApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "internal server error") })
 
-    public Response consentConfigurationPurposePost(@ApiParam(value = "Details of a purpose" ,required=true ) PurposeInputDTO purpose)
+    public Response consentConfigurationPurposePost(@ApiParam(value = "Details of a purpose" ,required=true ) PurposeDTO purpose)
     {
     return delegate.consentConfigurationPurposePost(purpose);
     }
@@ -215,7 +215,7 @@ public class ConsentApi  {
         
         @io.swagger.annotations.ApiResponse(code = 405, message = "method not allowed") })
 
-    public Response consentConfigurationPurposePut(@ApiParam(value = "Details of a purpose" ,required=true ) PurposeInputDTO purpose)
+    public Response consentConfigurationPurposePut(@ApiParam(value = "Details of a purpose" ,required=true ) PurposeDTO purpose)
     {
     return delegate.consentConfigurationPurposePut(purpose);
     }
@@ -223,7 +223,7 @@ public class ConsentApi  {
     @Path("/configuration/service")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Getting services", notes = "Getting details of services from the database", response = ServiceInputDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Getting services", notes = "Getting details of services from the database", response = ServiceWebFormDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation"),
         
@@ -245,7 +245,7 @@ public class ConsentApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "internal server error") })
 
-    public Response consentConfigurationServicePost(@ApiParam(value = "Details of a service" ,required=true ) ServiceInputDTO service)
+    public Response consentConfigurationServicePost(@ApiParam(value = "Details of a service" ,required=true ) ServiceWebFormDTO service)
     {
     return delegate.consentConfigurationServicePost(service);
     }
@@ -261,9 +261,53 @@ public class ConsentApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "internal server error") })
 
-    public Response consentConfigurationServicePut(@ApiParam(value = "Details of a service" ,required=true ) ServiceInputDTO service)
+    public Response consentConfigurationServicePut(@ApiParam(value = "Details of a service" ,required=true ) ServiceWebFormDTO service)
     {
     return delegate.consentConfigurationServicePut(service);
+    }
+    @GET
+    @Path("/configuration/third-party")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Get third parties", notes = "Get third party details from the consent database", response = ThirdPartyDTO.class, responseContainer = "List")
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 201, message = "Successful operation."),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationThirdPartyGet()
+    {
+    return delegate.consentConfigurationThirdPartyGet();
+    }
+    @POST
+    @Path("/configuration/third-party")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Add third party", notes = "Add third party details to the consent database", response = void.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 201, message = "Successfully created the third party."),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationThirdPartyPost(@ApiParam(value = "third party details" ,required=true ) ThirdPartyDTO thirdParty)
+    {
+    return delegate.consentConfigurationThirdPartyPost(thirdParty);
+    }
+    @PUT
+    @Path("/configuration/third-party")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Update third party", notes = "Update third party details to the database", response = void.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successfully updated the third party to the consent database"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationThirdPartyPut(@ApiParam(value = "third party details" ,required=true ) ThirdPartyDTO thirdParty)
+    {
+    return delegate.consentConfigurationThirdPartyPut(thirdParty);
     }
     @POST
     @Path("/receipt")

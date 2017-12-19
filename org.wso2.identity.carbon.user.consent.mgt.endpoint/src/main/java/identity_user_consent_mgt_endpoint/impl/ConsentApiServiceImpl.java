@@ -10,10 +10,12 @@ import identity_user_consent_mgt_endpoint.dto.PiiCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeInputDTO;
+import identity_user_consent_mgt_endpoint.dto.PurposeWebFormDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceCRDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceInputDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceListDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceWebFormDTO;
+import identity_user_consent_mgt_endpoint.dto.ThirdPartyDTO;
 import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;
 import mapping.ConsentMapping;
 import org.json.simple.JSONObject;
@@ -120,7 +122,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     }
 
     @Override
-    public Response consentConfigurationPurposePost(PurposeInputDTO purpose) {
+    public Response consentConfigurationPurposePost(PurposeDTO purpose) {
         PurposeDetailsDO purposeDetailsDO = ConsentMapping.setConsentConfigurationPurpose(purpose);
         try {
             getConsentService().setPurpose(purposeDetailsDO);
@@ -131,7 +133,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     }
 
     @Override
-    public Response consentConfigurationPurposePut(PurposeInputDTO purpose) {
+    public Response consentConfigurationPurposePut(PurposeDTO purpose) {
         PurposeDetailsDO purposeDO =ConsentMapping.updatePurpose(purpose);
         try {
             getConsentService().updatePurpose(purposeDO);
@@ -154,9 +156,15 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     }
 
     @Override
-    public Response consentConfigurationServicePost(ServiceInputDTO service) {
+    public Response consentConfigurationServicePost(ServiceWebFormDTO service) {
         ServicesDO servicesDO = new ServicesDO();
         servicesDO.setServiceDescription(service.getServiceName());
+        PurposeDetailsDO[] purposeDOArr=new PurposeDetailsDO[service.getPurposes().size()];
+        for(int i=0;i<service.getPurposes().size();i++){
+            purposeDOArr[i]=new PurposeDetailsDO();
+            purposeDOArr[i].setPurposeId(service.getPurposes().get(i).getPurposeId());
+        }
+        servicesDO.setPurposeDetails(purposeDOArr);
         try {
             getConsentService().setService(servicesDO);
         } catch (DataAccessException e) {
@@ -166,9 +174,16 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     }
 
     @Override
-    public Response consentConfigurationServicePut(ServiceInputDTO service) {
+    public Response consentConfigurationServicePut(ServiceWebFormDTO service) {
         ServicesDO servicesDO=new ServicesDO();
+        servicesDO.setServiceId(service.getServiceId());
         servicesDO.setServiceDescription(service.getServiceName());
+        PurposeDetailsDO[] purposeDOS=new PurposeDetailsDO[service.getPurposes().size()];
+        for(int i=0;i<service.getPurposes().size();i++){
+            purposeDOS[i]=new PurposeDetailsDO();
+            purposeDOS[i].setPurposeId(service.getPurposes().get(i).getPurposeId());
+        }
+        servicesDO.setPurposeDetails(purposeDOS);
         try {
             getConsentService().updateService(servicesDO);
         } catch (DataAccessException e) {
@@ -307,5 +322,20 @@ public class ConsentApiServiceImpl extends ConsentApiService {
             e.printStackTrace();
         }
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+
+    @Override
+    public Response consentConfigurationThirdPartyGet() {
+        return null;
+    }
+
+    @Override
+    public Response consentConfigurationThirdPartyPost(ThirdPartyDTO thirdParty) {
+        return null;
+    }
+
+    @Override
+    public Response consentConfigurationThirdPartyPut(ThirdPartyDTO thirdParty) {
+        return null;
     }
 }

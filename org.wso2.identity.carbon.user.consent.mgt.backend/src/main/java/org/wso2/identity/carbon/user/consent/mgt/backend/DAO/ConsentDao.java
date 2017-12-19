@@ -1387,9 +1387,9 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             log.error("Database error. Could not delete the service mapping with purposes. - "+e.getMessage(),e);
             throw new DataAccessException("Database error. Could not delete the service mapping with purposes. - "+e
                     .getMessage(),e);
-        } finally {
+        } /*finally {
             DBUtils.closeAllConnections(connection,preparedStatement);
-        }
+        }*/
     }
 
     /**
@@ -1883,6 +1883,8 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
             }
         }
     }
+
+//    public
 
     /**
      * This method returns the user details

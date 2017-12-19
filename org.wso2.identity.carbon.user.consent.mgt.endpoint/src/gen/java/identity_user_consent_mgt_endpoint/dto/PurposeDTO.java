@@ -42,6 +42,9 @@ public class PurposeDTO  {
   @NotNull
   private Integer thirdPartyDisclosure = null;
   
+  
+  private Integer thirdPartyId = null;
+  
   @NotNull
   private String thirdPartyName = null;
 
@@ -144,6 +147,18 @@ public class PurposeDTO  {
   
   /**
    **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("thirdPartyId")
+  public Integer getThirdPartyId() {
+    return thirdPartyId;
+  }
+  public void setThirdPartyId(Integer thirdPartyId) {
+    this.thirdPartyId = thirdPartyId;
+  }
+
+  
+  /**
+   **/
   @ApiModelProperty(required = true, value = "")
   @JsonProperty("thirdPartyName")
   public String getThirdPartyName() {
@@ -168,6 +183,7 @@ public class PurposeDTO  {
     sb.append("  primaryPurpose: ").append(primaryPurpose).append("\n");
     sb.append("  termination: ").append(termination).append("\n");
     sb.append("  thirdPartyDisclosure: ").append(thirdPartyDisclosure).append("\n");
+    sb.append("  thirdPartyId: ").append(thirdPartyId).append("\n");
     sb.append("  thirdPartyName: ").append(thirdPartyName).append("\n");
     sb.append("}\n");
     return sb.toString();
