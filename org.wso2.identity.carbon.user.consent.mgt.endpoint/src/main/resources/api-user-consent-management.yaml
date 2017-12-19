@@ -392,7 +392,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: '#/definitions/ThirdParty'
+              $ref: '#/definitions/ThirdPartyList'
         404:
           description: "Content not found"
         500:
@@ -901,6 +901,17 @@ definitions:
         format: "int32"
       third-party-name:
         type: "string"
+
+  ThirdPartyList:
+    type: "object"
+    properties:
+      thirdPartylist:
+        type: "array"
+        items:
+          $ref: "#/definitions/ThirdParty"
+    required: [
+      thirdPartyList
+    ]
     
 parameters:
   subjectName:

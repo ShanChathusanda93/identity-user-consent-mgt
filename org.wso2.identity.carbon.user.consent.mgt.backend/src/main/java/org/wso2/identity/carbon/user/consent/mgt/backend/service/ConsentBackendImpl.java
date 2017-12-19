@@ -10,6 +10,7 @@ import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.ThirdPartyDO;
 
 import java.text.ParseException;
 import java.util.List;
@@ -163,5 +164,24 @@ public class ConsentBackendImpl implements ConsentBackend {
     public void updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
         ConsentDao consentDao=new ConsentDao();
         consentDao.updatePurposeCategory(purposeCategory);
+    }
+
+    @Override
+    public List<ThirdPartyDO> getThirdParties() throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        List<ThirdPartyDO> thirdPartyList=consentDao.getThirdPartyDetailsForConf();
+        return thirdPartyList;
+    }
+
+    @Override
+    public void setThirdParty(ThirdPartyDO thirdParty) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.addThirdParty(thirdParty);
+    }
+
+    @Override
+    public void updateThirdParty(ThirdPartyDO thirdParty) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.updateThirdParty(thirdParty);
     }
 }

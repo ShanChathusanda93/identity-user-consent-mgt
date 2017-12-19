@@ -14,6 +14,7 @@ import identity_user_consent_mgt_endpoint.dto.PurposeCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeListDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceWebFormDTO;
+import identity_user_consent_mgt_endpoint.dto.ThirdPartyListDTO;
 import identity_user_consent_mgt_endpoint.dto.ThirdPartyDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;
@@ -269,7 +270,7 @@ public class ConsentApi  {
     @Path("/configuration/third-party")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Get third parties", notes = "Get third party details from the consent database", response = ThirdPartyDTO.class, responseContainer = "List")
+    @io.swagger.annotations.ApiOperation(value = "Get third parties", notes = "Get third party details from the consent database", response = ThirdPartyListDTO.class, responseContainer = "List")
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 201, message = "Successful operation."),
         

@@ -27,6 +27,7 @@ import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.ThirdPartyDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.service.ConsentBackend;
 
 import javax.ws.rs.core.Response;
@@ -326,16 +327,43 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationThirdPartyGet() {
-        return null;
+        List<ThirdPartyDTO> thirdPartyDTOList=new ArrayList<>();
+        try {
+            List<ThirdPartyDO> thirdPartyList=getConsentService().getThirdParties();
+            for(ThirdPartyDO thirdParty:thirdPartyList){
+                ThirdPartyDTO thirdPartyDTO=new ThirdPartyDTO();
+                thirdPartyDTO.setThirdPartyId(thirdParty.getThirdPartyId());
+                thirdPartyDTO.setThirdPartyName(thirdParty.getThirdPartyName());
+                thirdPartyDTOList.add(thirdPartyDTO);
+            }
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(thirdPartyDTOList).build();
     }
 
     @Override
     public Response consentConfigurationThirdPartyPost(ThirdPartyDTO thirdParty) {
-        return null;
+        ThirdPartyDO thirdPartyDO=new ThirdPartyDO();
+        thirdPartyDO.setThirdPartyName(thirdParty.getThirdPartyName());
+        try {
+            getConsentService().setThirdParty(thirdPartyDO);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
     @Override
     public Response consentConfigurationThirdPartyPut(ThirdPartyDTO thirdParty) {
-        return null;
+        ThirdPartyDO thirdPartyDO=new ThirdPartyDO();
+        thirdPartyDO.setThirdPartyId(thirdParty.getThirdPartyId());
+        thirdPartyDO.setThirdPartyName(thirdParty.getThirdPartyName());
+        try {
+            getConsentService().updateThirdParty(thirdPartyDO);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 }

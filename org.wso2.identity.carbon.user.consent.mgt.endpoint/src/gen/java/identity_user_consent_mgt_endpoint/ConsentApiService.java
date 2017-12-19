@@ -11,6 +11,7 @@ import identity_user_consent_mgt_endpoint.dto.PurposeCategoryDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeListDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceWebFormDTO;
+import identity_user_consent_mgt_endpoint.dto.ThirdPartyListDTO;
 import identity_user_consent_mgt_endpoint.dto.ThirdPartyDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;

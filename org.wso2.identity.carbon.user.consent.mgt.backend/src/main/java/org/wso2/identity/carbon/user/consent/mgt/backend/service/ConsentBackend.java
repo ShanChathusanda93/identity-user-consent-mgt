@@ -9,6 +9,7 @@ import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.ThirdPartyDO;
 
 import javax.xml.crypto.Data;
 import java.text.ParseException;
@@ -40,4 +41,7 @@ public interface ConsentBackend {
     public List<PurposeCategoryDO> getPurposeCategories() throws DataAccessException;
     public void setPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
     public void updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
+    public List<ThirdPartyDO> getThirdParties() throws DataAccessException;
+    public void setThirdParty(ThirdPartyDO thirdParty) throws DataAccessException;
+    public void updateThirdParty(ThirdPartyDO thirdParty) throws DataAccessException;
 }
