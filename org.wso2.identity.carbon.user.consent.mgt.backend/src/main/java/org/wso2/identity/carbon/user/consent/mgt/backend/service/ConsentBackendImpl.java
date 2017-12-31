@@ -16,32 +16,13 @@ import java.text.ParseException;
 import java.util.List;
 
 public class ConsentBackendImpl implements ConsentBackend {
+    ConsentDao consentDao=new ConsentDao();
+
     @Override
     public JSONObject getCreatedConsentReceipt(String subjectName) throws DataAccessException, ParseException {
         JSONParser jsonParser = new JSONParser();
         JSONObject consentReceiptObject = jsonParser.createConsentReceipt(subjectName);
         return consentReceiptObject;
-    }
-
-    @Override
-    public List<PiiCategoryDO> getPersonalIdentifyInfoCat() throws DataAccessException {
-        ConsentDao consentDao = new ConsentDao();
-        List<PiiCategoryDO> piiCategoryDOList = consentDao.getPersonalInfoCatForConfig();
-        return piiCategoryDOList;
-    }
-
-    @Override
-    public List<PurposeDetailsDO> getPurposeDetailsForConf() throws DataAccessException {
-        ConsentDao consentDao = new ConsentDao();
-        List<PurposeDetailsDO> purposeDetailsDOList = consentDao.getPurposesForConfig();
-        return purposeDetailsDOList;
-    }
-
-    @Override
-    public List<ServicesDO> getServicesForConf() throws DataAccessException {
-        ConsentDao consentDao = new ConsentDao();
-        List<ServicesDO> servicesDOList = consentDao.getServicesForConf();
-        return servicesDOList;
     }
 
     @Override
@@ -72,6 +53,7 @@ public class ConsentBackendImpl implements ConsentBackend {
         return servicesDOList;
     }
 
+    //-- Data Controller Configurations
     @Override
     public void setDataController(DataControllerDO dataControllerDO) throws DataAccessException {
         ConsentDao consentDao = new ConsentDao();
@@ -87,41 +69,29 @@ public class ConsentBackendImpl implements ConsentBackend {
     }
 
     @Override
+    public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.updateDataController(dataControllerDO);
+    }
+
+    @Override
+    public void deleteDataController(int dataControllerId) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.deleteDataController(dataControllerId);
+    }
+
+    //-- Personally Identifiable Info Category Configuration
+    @Override
     public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
         ConsentDao consentDao = new ConsentDao();
         consentDao.addPiiCategory(piiCategoryDO);
     }
 
     @Override
-    public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException {
+    public List<PiiCategoryDO> getPersonalIdentifyInfoCat() throws DataAccessException {
         ConsentDao consentDao = new ConsentDao();
-        consentDao.addPurposeDetails(purpose);
-    }
-
-    @Override
-    public void setService(ServicesDO service) throws DataAccessException {
-        ConsentDao consentDao = new ConsentDao();
-        consentDao.addServiceDetails(service);
-    }
-
-    @Override
-    public String getSubjectName(String subjectName) throws DataAccessException {
-        ConsentDao consentDao = new ConsentDao();
-        String subject = consentDao.getUserNameFromSGUID(subjectName);
-        return subject;
-    }
-
-    @Override
-    public void setConsentDetailsForUser(ConsentDO consentDO,ServicesDO[] services) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
-        consentDao.addUserAndDataControllerDetails(consentDO);
-        consentDao.addUserConsentDetails(consentDO,services);
-    }
-
-    @Override
-    public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException {
-        ConsentDao consentDao=new ConsentDao();
-        consentDao.updateDataController(dataControllerDO);
+        List<PiiCategoryDO> piiCategoryDOList = consentDao.getPersonalInfoCatForConfig();
+        return piiCategoryDOList;
     }
 
     @Override
@@ -131,9 +101,49 @@ public class ConsentBackendImpl implements ConsentBackend {
     }
 
     @Override
+    public PiiCategoryDO deletePersonalInfoCat(int categoryId) throws DataAccessException {
+        PiiCategoryDO piiCategory=consentDao.deletePersonalInfoCat(categoryId);
+        return piiCategory;
+    }
+
+    //- Purpose Configuration
+    @Override
+    public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException {
+        ConsentDao consentDao = new ConsentDao();
+        consentDao.addPurposeDetails(purpose);
+    }
+
+    @Override
+    public List<PurposeDetailsDO> getPurposeDetailsForConf() throws DataAccessException {
+        ConsentDao consentDao = new ConsentDao();
+        List<PurposeDetailsDO> purposeDetailsDOList = consentDao.getPurposesForConfig();
+        return purposeDetailsDOList;
+    }
+
+    @Override
     public void updatePurpose(PurposeDetailsDO purpose) throws DataAccessException {
         ConsentDao consentDao=new ConsentDao();
         consentDao.updatePurposeDetails(purpose);
+    }
+
+    @Override
+    public PurposeDetailsDO deletePurpose(int purposeId) throws DataAccessException {
+        PurposeDetailsDO purpose=consentDao.deletePurpose(purposeId);
+        return purpose;
+    }
+
+    //-- Service Configuration
+    @Override
+    public void setService(ServicesDO service) throws DataAccessException {
+        ConsentDao consentDao = new ConsentDao();
+        consentDao.addServiceDetails(service);
+    }
+
+    @Override
+    public List<ServicesDO> getServicesForConf() throws DataAccessException {
+        ConsentDao consentDao = new ConsentDao();
+        List<ServicesDO> servicesDOList = consentDao.getServicesForConf();
+        return servicesDOList;
     }
 
     @Override
@@ -143,10 +153,12 @@ public class ConsentBackendImpl implements ConsentBackend {
     }
 
     @Override
-    public void revokeConsent(String subjectName, List<ServicesDO> servicesList) throws DataAccessException {
-//        Complete the impl
+    public ServicesDO deleteService(int serviceId) throws DataAccessException {
+        ServicesDO service=consentDao.deleteService(serviceId);
+        return service;
     }
 
+    //-- Purpose Category Configuration
     @Override
     public List<PurposeCategoryDO> getPurposeCategories() throws DataAccessException {
         ConsentDao consentDao=new ConsentDao();
@@ -167,6 +179,13 @@ public class ConsentBackendImpl implements ConsentBackend {
     }
 
     @Override
+    public PurposeCategoryDO deletePurposeCategory(int categoryId) throws DataAccessException {
+        PurposeCategoryDO purposeCategory=consentDao.deletePurposeCategory(categoryId);
+        return purposeCategory;
+    }
+
+    //-- Third Party Configuration
+    @Override
     public List<ThirdPartyDO> getThirdParties() throws DataAccessException {
         ConsentDao consentDao=new ConsentDao();
         List<ThirdPartyDO> thirdPartyList=consentDao.getThirdPartyDetailsForConf();
@@ -183,5 +202,30 @@ public class ConsentBackendImpl implements ConsentBackend {
     public void updateThirdParty(ThirdPartyDO thirdParty) throws DataAccessException {
         ConsentDao consentDao=new ConsentDao();
         consentDao.updateThirdParty(thirdParty);
+    }
+
+    @Override
+    public ThirdPartyDO deleteThirdParty(int thirdPartyId) throws DataAccessException {
+        ThirdPartyDO thirdParty=consentDao.deleteThirdParty(thirdPartyId);
+        return thirdParty;
+    }
+
+    @Override
+    public ConsentDO getSubjectName(String subjectName) throws DataAccessException {
+        ConsentDao consentDao = new ConsentDao();
+        ConsentDO consent = consentDao.getUserNameFromSGUID(subjectName);
+        return consent;
+    }
+
+    @Override
+    public void setConsentDetailsForUser(ConsentDO consentDO,ServicesDO[] services) throws DataAccessException {
+        ConsentDao consentDao=new ConsentDao();
+        consentDao.addUserAndDataControllerDetails(consentDO);
+        consentDao.addUserConsentDetails(consentDO,services);
+    }
+
+    @Override
+    public void revokeConsent(String subjectName, List<ServicesDO> servicesList) throws DataAccessException {
+//        Complete the impl
     }
 }

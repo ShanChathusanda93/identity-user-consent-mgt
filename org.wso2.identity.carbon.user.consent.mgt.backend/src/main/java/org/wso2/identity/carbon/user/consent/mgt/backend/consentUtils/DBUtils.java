@@ -31,6 +31,15 @@ public class DBUtils {
         closePreparedStat(preparedStatement);
     }
 
+    public static void closeAllConnections(PreparedStatement preparedStatement,ResultSet resultSet){
+        closePreparedStat(preparedStatement);
+        closeResultSet(resultSet);
+    }
+
+    public static void closeAllConnections(PreparedStatement preparedStatement){
+        closePreparedStat(preparedStatement);
+    }
+
     private static void closeDbConnection(Connection connection) {
         if(connection!=null) {
             try {

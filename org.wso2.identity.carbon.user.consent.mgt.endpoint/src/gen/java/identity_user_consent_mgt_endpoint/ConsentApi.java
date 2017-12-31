@@ -7,15 +7,15 @@ import identity_user_consent_mgt_endpoint.factories.ConsentApiServiceFactory;
 import io.swagger.annotations.ApiParam;
 
 import identity_user_consent_mgt_endpoint.dto.DataControllerInputDTO;
-import identity_user_consent_mgt_endpoint.dto.PiiCatListDTO;
 import identity_user_consent_mgt_endpoint.dto.PiiCategoryDTO;
-import identity_user_consent_mgt_endpoint.dto.PurposeCategoryListDTO;
+import identity_user_consent_mgt_endpoint.dto.PiiCatListDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeCategoryDTO;
-import identity_user_consent_mgt_endpoint.dto.PurposeListDTO;
+import identity_user_consent_mgt_endpoint.dto.PurposeCategoryListDTO;
 import identity_user_consent_mgt_endpoint.dto.PurposeDTO;
+import identity_user_consent_mgt_endpoint.dto.PurposeListDTO;
 import identity_user_consent_mgt_endpoint.dto.ServiceWebFormDTO;
-import identity_user_consent_mgt_endpoint.dto.ThirdPartyListDTO;
 import identity_user_consent_mgt_endpoint.dto.ThirdPartyDTO;
+import identity_user_consent_mgt_endpoint.dto.ThirdPartyListDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentReceiptDTO;
 import identity_user_consent_mgt_endpoint.dto.UserConsentWebFormDTO;
 import identity_user_consent_mgt_endpoint.dto.ConsentRevokeListDTO;
@@ -40,6 +40,22 @@ public class ConsentApi  {
 
    private final ConsentApiService delegate = ConsentApiServiceFactory.getConsentApi();
 
+    @DELETE
+    @Path("/configuration/dataController")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Delete data controller", notes = "Delete data controller details from the consent database", response = DataControllerInputDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful Delete"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationDataControllerDelete(@ApiParam(value = "Id of the data controller to be get",required=true) @QueryParam("dataControllerId")  Integer dataControllerId)
+    {
+    return delegate.consentConfigurationDataControllerDelete(dataControllerId);
+    }
     @GET
     @Path("/configuration/dataController")
     @Consumes({ "application/json" })
@@ -84,6 +100,22 @@ public class ConsentApi  {
     {
     return delegate.consentConfigurationDataControllerPut(dataController);
     }
+    @DELETE
+    @Path("/configuration/personalInfoCategory")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Delete personally identifiable info category", notes = "Delete personally identifiable info category by category id", response = PiiCategoryDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful Delete"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationPersonalInfoCategoryDelete(@ApiParam(value = "Category id for delete",required=true) @QueryParam("categoryId")  Integer categoryId)
+    {
+    return delegate.consentConfigurationPersonalInfoCategoryDelete(categoryId);
+    }
     @GET
     @Path("/configuration/personalInfoCategory")
     @Consumes({ "application/json" })
@@ -127,6 +159,22 @@ public class ConsentApi  {
     public Response consentConfigurationPersonalInfoCategoryPut(@ApiParam(value = "Details of a personally identifiable info category" ,required=true ) PiiCategoryDTO piiCategory)
     {
     return delegate.consentConfigurationPersonalInfoCategoryPut(piiCategory);
+    }
+    @DELETE
+    @Path("/configuration/purpose-category")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Delete purpose category", notes = "Delete purpose category from the consent database", response = PurposeCategoryDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful Delete"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationPurposeCategoryDelete(@ApiParam(value = "Purpose category id",required=true) @QueryParam("purposeCategoryId")  Integer purposeCategoryId)
+    {
+    return delegate.consentConfigurationPurposeCategoryDelete(purposeCategoryId);
     }
     @GET
     @Path("/configuration/purpose-category")
@@ -174,6 +222,22 @@ public class ConsentApi  {
     {
     return delegate.consentConfigurationPurposeCategoryPut(purposeCategory);
     }
+    @DELETE
+    @Path("/configuration/purpose")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Delete purpose", notes = "Delete purpose by purpose id", response = PurposeDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful Delete"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationPurposeDelete(@ApiParam(value = "Category id for delete",required=true) @QueryParam("categoryId")  Integer categoryId)
+    {
+    return delegate.consentConfigurationPurposeDelete(categoryId);
+    }
     @GET
     @Path("/configuration/purpose")
     @Consumes({ "application/json" })
@@ -220,6 +284,22 @@ public class ConsentApi  {
     {
     return delegate.consentConfigurationPurposePut(purpose);
     }
+    @DELETE
+    @Path("/configuration/service")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Delete service", notes = "Delete service by service id", response = ServiceWebFormDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful Delete"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationServiceDelete(@ApiParam(value = "Category id for delete",required=true) @QueryParam("categoryId")  Integer categoryId)
+    {
+    return delegate.consentConfigurationServiceDelete(categoryId);
+    }
     @GET
     @Path("/configuration/service")
     @Consumes({ "application/json" })
@@ -265,6 +345,22 @@ public class ConsentApi  {
     public Response consentConfigurationServicePut(@ApiParam(value = "Details of a service" ,required=true ) ServiceWebFormDTO service)
     {
     return delegate.consentConfigurationServicePut(service);
+    }
+    @DELETE
+    @Path("/configuration/third-party")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Delete third party", notes = "Delete third party by third party id", response = ThirdPartyDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful Delete"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationThirdPartyDelete(@ApiParam(value = "Category id for delete",required=true) @QueryParam("categoryId")  Integer categoryId)
+    {
+    return delegate.consentConfigurationThirdPartyDelete(categoryId);
     }
     @GET
     @Path("/configuration/third-party")

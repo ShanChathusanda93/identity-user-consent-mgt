@@ -6,9 +6,6 @@ import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessExc
 import java.util.List;
 
 public interface DataControllerDaoInt {
-    public List<DataControllerDO> getDataController();
-
     public void addDataController(DataControllerDO dataController) throws DataAccessException;
-
     public int isDataControllerExists(String orgName) throws DataAccessException;
 }

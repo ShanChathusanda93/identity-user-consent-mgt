@@ -17,19 +17,19 @@ import javax.validation.constraints.NotNull;
 public class ThirdPartyListDTO  {
   
   
-  
-  private List<ThirdPartyDTO> thirdPartylist = new ArrayList<ThirdPartyDTO>();
+  @NotNull
+  private List<ThirdPartyDTO> thirdPartyList = new ArrayList<ThirdPartyDTO>();
 
   
   /**
    **/
-  @ApiModelProperty(value = "")
-  @JsonProperty("thirdPartylist")
-  public List<ThirdPartyDTO> getThirdPartylist() {
-    return thirdPartylist;
+  @ApiModelProperty(required = true, value = "")
+  @JsonProperty("thirdPartyList")
+  public List<ThirdPartyDTO> getThirdPartyList() {
+    return thirdPartyList;
   }
-  public void setThirdPartylist(List<ThirdPartyDTO> thirdPartylist) {
-    this.thirdPartylist = thirdPartylist;
+  public void setThirdPartyList(List<ThirdPartyDTO> thirdPartyList) {
+    this.thirdPartyList = thirdPartyList;
   }
 
   
@@ -39,7 +39,7 @@ public class ThirdPartyListDTO  {
     StringBuilder sb = new StringBuilder();
     sb.append("class ThirdPartyListDTO {\n");
     
-    sb.append("  thirdPartylist: ").append(thirdPartylist).append("\n");
+    sb.append("  thirdPartyList: ").append(thirdPartyList).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

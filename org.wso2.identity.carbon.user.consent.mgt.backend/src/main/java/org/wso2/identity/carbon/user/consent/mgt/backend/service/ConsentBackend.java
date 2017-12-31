@@ -17,31 +17,37 @@ import java.util.List;
 
 public interface ConsentBackend {
     public JSONObject getCreatedConsentReceipt(String subjectName) throws DataAccessException, ParseException;
-    public List<PiiCategoryDO> getPersonalIdentifyInfoCat() throws DataAccessException;
-    public List<PurposeDetailsDO> getPurposeDetailsForConf() throws DataAccessException;
-    public List<ServicesDO> getServicesForConf() throws DataAccessException;
     public List<ServicesDO> getServicesForUserView(String subjectName) throws DataAccessException;
     public ServicesDO getServiceByUserByServiceId(String subjectName,int serviceId) throws DataAccessException;
     public PurposeDetailsDO getPurposeByUserByServiceByPurposeId(String subjectName,int serviceId,int purposeId)
             throws DataAccessException;
     public List<ServicesDO> getServicesByUserByThirdParty(String subjectName,int thirdPartyId) throws
             DataAccessException;
+    public ConsentDO getSubjectName(String subjectName) throws DataAccessException;
+    public void setConsentDetailsForUser(ConsentDO consentDO,ServicesDO[] services) throws DataAccessException;
+    public void revokeConsent(String subjectName,List<ServicesDO> servicesList) throws DataAccessException;
     public void setDataController(DataControllerDO dataControllerDO) throws DataAccessException;
     public DataControllerDO getDataController(int dataControllerId) throws DataAccessException;
-    public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
-    public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException;
-    public void setService(ServicesDO service) throws DataAccessException;
-    public String getSubjectName(String subjectName) throws DataAccessException;
-    public void setConsentDetailsForUser(ConsentDO consentDO,ServicesDO[] services) throws DataAccessException;
     public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException;
+    public void deleteDataController(int dataControllerId) throws DataAccessException;
+    public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
+    public List<PiiCategoryDO> getPersonalIdentifyInfoCat() throws DataAccessException;
     public void updatePersonallyIdentifiableInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
+    public PiiCategoryDO deletePersonalInfoCat(int categoryId) throws DataAccessException;
+    public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException;
+    public List<PurposeDetailsDO> getPurposeDetailsForConf() throws DataAccessException;
     public void updatePurpose(PurposeDetailsDO purpose) throws DataAccessException;
+    public PurposeDetailsDO deletePurpose(int purposeId) throws DataAccessException;
+    public void setService(ServicesDO service) throws DataAccessException;
+    public List<ServicesDO> getServicesForConf() throws DataAccessException;
     public void updateService(ServicesDO services) throws DataAccessException;
-    public void revokeConsent(String subjectName,List<ServicesDO> servicesList) throws DataAccessException;
-    public List<PurposeCategoryDO> getPurposeCategories() throws DataAccessException;
+    public ServicesDO deleteService(int serviceId) throws DataAccessException;
     public void setPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
+    public List<PurposeCategoryDO> getPurposeCategories() throws DataAccessException;
     public void updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
-    public List<ThirdPartyDO> getThirdParties() throws DataAccessException;
+    public PurposeCategoryDO deletePurposeCategory(int categoryId) throws DataAccessException;
     public void setThirdParty(ThirdPartyDO thirdParty) throws DataAccessException;
+    public List<ThirdPartyDO> getThirdParties() throws DataAccessException;
     public void updateThirdParty(ThirdPartyDO thirdParty) throws DataAccessException;
+    public ThirdPartyDO deleteThirdParty(int thirdPartyId) throws DataAccessException;
 }

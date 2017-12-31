@@ -77,6 +77,16 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     }
 
     @Override
+    public Response consentConfigurationDataControllerDelete(Integer dataControllerId){
+        try {
+            getConsentService().deleteDataController(dataControllerId);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+
+    @Override
     public Response consentConfigurationPersonalInfoCategoryGet() {
         List<PiiCategoryDTO> piiCategoryDTOList = new ArrayList<>();
         try {
@@ -111,6 +121,18 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     }
 
     @Override
+    public Response consentConfigurationPersonalInfoCategoryDelete(Integer categoryId) {
+        PiiCategoryDTO piiCategoryDTO=new PiiCategoryDTO();
+        try {
+            PiiCategoryDO piiCategory=getConsentService().deletePersonalInfoCat(categoryId);
+            piiCategoryDTO.setPiiCat(piiCategory.getPiiCat());
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(piiCategoryDTO).build();
+    }
+
+    @Override
     public Response consentConfigurationPurposeGet() {
         List<PurposeDTO> purposeDTOList = new ArrayList<>();
         try {
@@ -142,6 +164,18 @@ public class ConsentApiServiceImpl extends ConsentApiService {
             e.printStackTrace();
         }
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+
+    @Override
+    public Response consentConfigurationPurposeDelete(Integer id) {
+        PurposeDTO purposeDTO=new PurposeDTO();
+        try {
+            PurposeDetailsDO purpose=getConsentService().deletePurpose(id);
+            purposeDTO.setPurpose(purpose.getPurpose());
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(purposeDTO).build();
     }
 
     @Override
@@ -191,6 +225,18 @@ public class ConsentApiServiceImpl extends ConsentApiService {
             e.printStackTrace();
         }
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+
+    @Override
+    public Response consentConfigurationServiceDelete(Integer id) {
+        ServiceWebFormDTO serviceDTO=new ServiceWebFormDTO();
+        try {
+            ServicesDO service=getConsentService().deleteService(id);
+            serviceDTO.setServiceName(service.getServiceDescription());
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(serviceDTO).build();
     }
 
     @Override
@@ -326,6 +372,18 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     }
 
     @Override
+    public Response consentConfigurationPurposeCategoryDelete(Integer purposeCategoryId) {
+        PurposeCategoryDTO purposeCategoryDTO=new PurposeCategoryDTO();
+        try {
+            PurposeCategoryDO purposeCategory=getConsentService().deletePurposeCategory(purposeCategoryId);
+            purposeCategoryDTO.setPurposeCategoryShortCode(purposeCategory.getPurposeCatShortCode());
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(purposeCategoryDTO).build();
+    }
+
+    @Override
     public Response consentConfigurationThirdPartyGet() {
         List<ThirdPartyDTO> thirdPartyDTOList=new ArrayList<>();
         try {
@@ -365,5 +423,17 @@ public class ConsentApiServiceImpl extends ConsentApiService {
             e.printStackTrace();
         }
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+
+    @Override
+    public Response consentConfigurationThirdPartyDelete(Integer id) {
+        ThirdPartyDTO thirdPartyDTO=new ThirdPartyDTO();
+        try {
+            ThirdPartyDO thirdParty=getConsentService().deleteThirdParty(id);
+            thirdPartyDTO.setThirdPartyName(thirdParty.getThirdPartyName());
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(thirdPartyDTO).build();
     }
 }

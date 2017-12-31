@@ -26,7 +26,7 @@ public class UserConsentWebFormDTO  {
   
   private String sguid = null;
   
-  
+  @NotNull
   private Integer dataControllerId = null;
   
   @NotNull
@@ -71,7 +71,7 @@ public class UserConsentWebFormDTO  {
   
   /**
    **/
-  @ApiModelProperty(value = "")
+  @ApiModelProperty(required = true, value = "")
   @JsonProperty("dataControllerId")
   public Integer getDataControllerId() {
     return dataControllerId;

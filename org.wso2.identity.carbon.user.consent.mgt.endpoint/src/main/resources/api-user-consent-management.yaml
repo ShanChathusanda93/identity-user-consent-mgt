@@ -203,6 +203,21 @@ paths:
         500:
           description: "internal server error"
 
+    delete:
+      summary: "Delete data controller"
+      description: "Delete data controller details from the consent database"
+      parameters:
+        - $ref: '#/parameters/dataControllerId'
+      responses:
+        200:
+          description: "Successful Delete"
+          schema:
+            $ref: '#/definitions/DataControllerInput'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
+
   /consent/configuration/purpose-category:
     post:
       summary: "Add purpose category"
@@ -239,6 +254,21 @@ paths:
           description: "Content not found"
         500:
           description: "Internal error"
+
+    delete:
+      summary: "Delete purpose category"
+      description: "Delete purpose category from the consent database"
+      parameters:
+        - $ref: '#/parameters/purposeCategoryId'
+      responses:
+        200:
+          description: "Successful Delete"
+          schema:
+            $ref: '#/definitions/PurposeCategory'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
 
   /consent/configuration/personalInfoCategory:
     post:
@@ -281,6 +311,22 @@ paths:
           description: "content not found"
         500:
           description: "internal server error"
+
+    delete:
+      summary: "Delete personally identifiable info category"
+      description: "Delete personally identifiable info category by category id"
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: "Successful Delete"
+          schema:
+            $ref: '#/definitions/PiiCategory'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
+
 
   /consent/configuration/service:
     post:
@@ -325,6 +371,22 @@ paths:
           description: "content not found"
         500:
           description: "internal server error"
+
+    delete:
+      summary: "Delete service"
+      description: "Delete service by service id"
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: "Successful Delete"
+          schema:
+            $ref: '#/definitions/ServiceWebForm'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
+
 
 
   /consent/configuration/purpose:
@@ -371,6 +433,21 @@ paths:
         405:
           description: "method not allowed"
 
+    delete:
+      summary: "Delete purpose"
+      description: "Delete purpose by purpose id"
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: "Successful Delete"
+          schema:
+            $ref: '#/definitions/Purpose'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
+
   /consent/configuration/third-party:
     post:
       summary: "Add third party"
@@ -406,6 +483,21 @@ paths:
       responses:
         200:
           description: "Successfully updated the third party to the consent database"
+        500:
+          description: "Internal server error"
+
+    delete:
+      summary: "Delete third party"
+      description: "Delete third party by third party id"
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: "Successful Delete"
+          schema:
+            $ref: '#/definitions/ThirdParty'
+        404:
+          description: "Content not found"
         500:
           description: "Internal server error"
 
@@ -809,7 +901,7 @@ definitions:
     required: [
       collectionMethod,
       subjectName,
-      dataController,
+      dataControllerId,
       services
     ]
 
@@ -896,16 +988,16 @@ definitions:
   ThirdParty:
     type: "object"
     properties:
-      third-party-id:
+      thirdPartyId:
         type: "integer"
         format: "int32"
-      third-party-name:
+      thirdPartyName:
         type: "string"
 
   ThirdPartyList:
     type: "object"
     properties:
-      thirdPartylist:
+      thirdPartyList:
         type: "array"
         items:
           $ref: "#/definitions/ThirdParty"
@@ -977,6 +1069,14 @@ parameters:
     schema:
       $ref: '#/definitions/PiiCategory'
 
+  id:
+    name: "categoryId"
+    in: "query"
+    description: "Category id for delete"
+    required: true
+    type: "integer"
+    format: "int32"
+
   purpose:
     name: "purpose"
     in: "body"
@@ -1023,6 +1123,14 @@ parameters:
     required: true
     schema:
       $ref: '#/definitions/PurposeCategory'
+
+  purposeCategoryId:
+    name: "purposeCategoryId"
+    in: "query"
+    description: "Purpose category id"
+    required: true
+    type: "integer"
+    format: "int32"
 
   thirdParty:
     name: "thirdParty"
