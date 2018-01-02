@@ -29,7 +29,7 @@ import javax.ws.rs.core.Response;
 
 public abstract class ConsentApiService {
     public abstract Response consentConfigurationDataControllerDelete(Integer dataControllerId);
-    public abstract Response consentConfigurationDataControllerGet(Integer dataControllerId);
+    public abstract Response consentConfigurationDataControllerGet(String organizationName);
     public abstract Response consentConfigurationDataControllerPost(DataControllerInputDTO dataController);
     public abstract Response consentConfigurationDataControllerPut(DataControllerInputDTO dataController);
     public abstract Response consentConfigurationPersonalInfoCategoryDelete(Integer categoryId);

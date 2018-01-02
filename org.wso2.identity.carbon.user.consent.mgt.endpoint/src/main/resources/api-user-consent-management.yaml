@@ -170,6 +170,8 @@ paths:
       responses:
         201:
           description: "successfully created the data controller"
+          schema:
+            $ref: '#/definitions/DataControllerInput'
         500:
           description: "internal server error"
 
@@ -179,7 +181,7 @@ paths:
       tags:
         - "Data Retrieval"
       parameters:
-        - $ref: '#/parameters/dataControllerId'
+        - $ref: '#/parameters/organizationName'
       responses:
         200:
           description: "successful operation"
@@ -1108,13 +1110,12 @@ parameters:
     schema:
       $ref: '#/definitions/ConsentRevokeList'
 
-  dataControllerId:
-    name: "dataControllerId"
+  organizationName:
+    name: "organizationName"
     in: "query"
-    description: "Id of the data controller to be get"
+    description: "Name of the data controller to be get"
     required: true
-    type: "integer"
-    format: "int32"
+    type: "String"
 
   purposeCategory:
     name: "purposeCategory"

@@ -1035,20 +1035,20 @@ public class ConsentDao extends DBConnect implements MainDaoInt {
      * Data Controller Configuration
      * Get Data Controller details from the database
      *
-     * @param dataControllerId
+     * @param organizationName
      * @return
      * @throws DataAccessException
      */
-    public DataControllerDO getDataController(int dataControllerId) throws DataAccessException {
+    public DataControllerDO getDataController(String organizationName) throws DataAccessException {
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
             ResultSet resultSet = null;
 
-            String query = "SELECT * FROM DATA_CONTROLLER WHERE DATA_CONTROLLER_ID=?;";
+            String query = "SELECT * FROM DATA_CONTROLLER WHERE ORGANIZATION_NAME=?;";
             try {
                 preparedStatement = connection.prepareStatement(query);
-                preparedStatement.setInt(1, dataControllerId);
+                preparedStatement.setString(1, organizationName);
                 resultSet = preparedStatement.executeQuery();
                 resultSet.first();
                 DataControllerDO dataControllerDO = new DataControllerDO();

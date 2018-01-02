@@ -44,21 +44,23 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     @Override
     public Response consentConfigurationDataControllerPost(DataControllerInputDTO dataController) {
         DataControllerDO dataControllerDO = ConsentMapping.setConsentConfigurationDataController(dataController);
+        DataControllerInputDTO dataControllerDTO=new DataControllerInputDTO();
         try {
             getConsentService().setDataController(dataControllerDO);
+            dataControllerDO=getConsentService().getDataController(dataController.getOrg());
+            dataControllerDTO=ConsentMapping.getConsentConfigurationDataController(dataControllerDO);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+        return Response.ok().entity(dataControllerDTO).build();
     }
 
     @Override
-    public Response consentConfigurationDataControllerGet(Integer dataControllerId) {
+    public Response consentConfigurationDataControllerGet(String organizationName) {
         DataControllerInputDTO dataControllerInputDTO = null;
         try {
-            DataControllerDO dataControllerDO = getConsentService().getDataController(dataControllerId);
-            dataControllerInputDTO = ConsentMapping.getConsentConfigurationDataController
-                    (dataControllerDO);
+            DataControllerDO dataControllerDO = getConsentService().getDataController(organizationName);
+            dataControllerInputDTO = ConsentMapping.getConsentConfigurationDataController(dataControllerDO);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -67,7 +69,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationDataControllerPut(DataControllerInputDTO dataController) {
-        DataControllerDO dataControllerDO=ConsentMapping.updateDataController(dataController);
+        DataControllerDO dataControllerDO = ConsentMapping.updateDataController(dataController);
         try {
             getConsentService().updateDataController(dataControllerDO);
         } catch (DataAccessException e) {
@@ -77,7 +79,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     }
 
     @Override
-    public Response consentConfigurationDataControllerDelete(Integer dataControllerId){
+    public Response consentConfigurationDataControllerDelete(Integer dataControllerId) {
         try {
             getConsentService().deleteDataController(dataControllerId);
         } catch (DataAccessException e) {
@@ -111,7 +113,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPersonalInfoCategoryPut(PiiCategoryDTO piiCategory) {
-        PiiCategoryDO piiCategoryDO=ConsentMapping.updatePersonallyIdentifiableInfoCat(piiCategory);
+        PiiCategoryDO piiCategoryDO = ConsentMapping.updatePersonallyIdentifiableInfoCat(piiCategory);
         try {
             getConsentService().updatePersonallyIdentifiableInfoCat(piiCategoryDO);
         } catch (DataAccessException e) {
@@ -122,9 +124,9 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPersonalInfoCategoryDelete(Integer categoryId) {
-        PiiCategoryDTO piiCategoryDTO=new PiiCategoryDTO();
+        PiiCategoryDTO piiCategoryDTO = new PiiCategoryDTO();
         try {
-            PiiCategoryDO piiCategory=getConsentService().deletePersonalInfoCat(categoryId);
+            PiiCategoryDO piiCategory = getConsentService().deletePersonalInfoCat(categoryId);
             piiCategoryDTO.setPiiCat(piiCategory.getPiiCat());
         } catch (DataAccessException e) {
             e.printStackTrace();
@@ -157,7 +159,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPurposePut(PurposeDTO purpose) {
-        PurposeDetailsDO purposeDO =ConsentMapping.updatePurpose(purpose);
+        PurposeDetailsDO purposeDO = ConsentMapping.updatePurpose(purpose);
         try {
             getConsentService().updatePurpose(purposeDO);
         } catch (DataAccessException e) {
@@ -168,9 +170,9 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPurposeDelete(Integer id) {
-        PurposeDTO purposeDTO=new PurposeDTO();
+        PurposeDTO purposeDTO = new PurposeDTO();
         try {
-            PurposeDetailsDO purpose=getConsentService().deletePurpose(id);
+            PurposeDetailsDO purpose = getConsentService().deletePurpose(id);
             purposeDTO.setPurpose(purpose.getPurpose());
         } catch (DataAccessException e) {
             e.printStackTrace();
@@ -194,9 +196,9 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     public Response consentConfigurationServicePost(ServiceWebFormDTO service) {
         ServicesDO servicesDO = new ServicesDO();
         servicesDO.setServiceDescription(service.getServiceName());
-        PurposeDetailsDO[] purposeDOArr=new PurposeDetailsDO[service.getPurposes().size()];
-        for(int i=0;i<service.getPurposes().size();i++){
-            purposeDOArr[i]=new PurposeDetailsDO();
+        PurposeDetailsDO[] purposeDOArr = new PurposeDetailsDO[service.getPurposes().size()];
+        for (int i = 0; i < service.getPurposes().size(); i++) {
+            purposeDOArr[i] = new PurposeDetailsDO();
             purposeDOArr[i].setPurposeId(service.getPurposes().get(i).getPurposeId());
         }
         servicesDO.setPurposeDetails(purposeDOArr);
@@ -210,12 +212,12 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationServicePut(ServiceWebFormDTO service) {
-        ServicesDO servicesDO=new ServicesDO();
+        ServicesDO servicesDO = new ServicesDO();
         servicesDO.setServiceId(service.getServiceId());
         servicesDO.setServiceDescription(service.getServiceName());
-        PurposeDetailsDO[] purposeDOS=new PurposeDetailsDO[service.getPurposes().size()];
-        for(int i=0;i<service.getPurposes().size();i++){
-            purposeDOS[i]=new PurposeDetailsDO();
+        PurposeDetailsDO[] purposeDOS = new PurposeDetailsDO[service.getPurposes().size()];
+        for (int i = 0; i < service.getPurposes().size(); i++) {
+            purposeDOS[i] = new PurposeDetailsDO();
             purposeDOS[i].setPurposeId(service.getPurposes().get(i).getPurposeId());
         }
         servicesDO.setPurposeDetails(purposeDOS);
@@ -229,9 +231,9 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationServiceDelete(Integer id) {
-        ServiceWebFormDTO serviceDTO=new ServiceWebFormDTO();
+        ServiceWebFormDTO serviceDTO = new ServiceWebFormDTO();
         try {
-            ServicesDO service=getConsentService().deleteService(id);
+            ServicesDO service = getConsentService().deleteService(id);
             serviceDTO.setServiceName(service.getServiceDescription());
         } catch (DataAccessException e) {
             e.printStackTrace();
@@ -247,10 +249,10 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentReceiptWebFormPost(UserConsentWebFormDTO userConsentWebForm) {
-        ConsentDO consentDO=ConsentMapping.setUserAndDataController(userConsentWebForm);
-        ServicesDO[] servicesDOS=ConsentMapping.setUserConsents(userConsentWebForm);
+        ConsentDO consentDO = ConsentMapping.setUserAndDataController(userConsentWebForm);
+        ServicesDO[] servicesDOS = ConsentMapping.setUserConsents(userConsentWebForm);
         try {
-            getConsentService().setConsentDetailsForUser(consentDO,servicesDOS);
+            getConsentService().setConsentDetailsForUser(consentDO, servicesDOS);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -259,9 +261,9 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentRevokePut(ConsentRevokeListDTO revokingConsent) {
-        List<ServicesDO> servicesList =ConsentMapping.revokeConsent(revokingConsent);
+        List<ServicesDO> servicesList = ConsentMapping.revokeConsent(revokingConsent);
         try {
-            getConsentService().revokeConsent(revokingConsent.getSubjectName(),servicesList);
+            getConsentService().revokeConsent(revokingConsent.getSubjectName(), servicesList);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -339,10 +341,10 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPurposeCategoryGet() {
-        List<PurposeCategoryDTO> purposeCategoryDTOList=new ArrayList<>();
+        List<PurposeCategoryDTO> purposeCategoryDTOList = new ArrayList<>();
         try {
-            List<PurposeCategoryDO> purposeCategoryList=getConsentService().getPurposeCategories();
-            purposeCategoryDTOList=ConsentMapping.getPurposeCategories(purposeCategoryList);
+            List<PurposeCategoryDO> purposeCategoryList = getConsentService().getPurposeCategories();
+            purposeCategoryDTOList = ConsentMapping.getPurposeCategories(purposeCategoryList);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -351,7 +353,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPurposeCategoryPost(PurposeCategoryDTO purposeCategory) {
-        PurposeCategoryDO purposeCategoryDO=ConsentMapping.setPurposeCategory(purposeCategory);
+        PurposeCategoryDO purposeCategoryDO = ConsentMapping.setPurposeCategory(purposeCategory);
         try {
             getConsentService().setPurposeCategory(purposeCategoryDO);
         } catch (DataAccessException e) {
@@ -362,7 +364,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPurposeCategoryPut(PurposeCategoryDTO purposeCategory) {
-        PurposeCategoryDO purposeCategoryDO=ConsentMapping.updatePurposeCategory(purposeCategory);
+        PurposeCategoryDO purposeCategoryDO = ConsentMapping.updatePurposeCategory(purposeCategory);
         try {
             getConsentService().updatePurposeCategory(purposeCategoryDO);
         } catch (DataAccessException e) {
@@ -373,9 +375,9 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPurposeCategoryDelete(Integer purposeCategoryId) {
-        PurposeCategoryDTO purposeCategoryDTO=new PurposeCategoryDTO();
+        PurposeCategoryDTO purposeCategoryDTO = new PurposeCategoryDTO();
         try {
-            PurposeCategoryDO purposeCategory=getConsentService().deletePurposeCategory(purposeCategoryId);
+            PurposeCategoryDO purposeCategory = getConsentService().deletePurposeCategory(purposeCategoryId);
             purposeCategoryDTO.setPurposeCategoryShortCode(purposeCategory.getPurposeCatShortCode());
         } catch (DataAccessException e) {
             e.printStackTrace();
@@ -385,11 +387,11 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationThirdPartyGet() {
-        List<ThirdPartyDTO> thirdPartyDTOList=new ArrayList<>();
+        List<ThirdPartyDTO> thirdPartyDTOList = new ArrayList<>();
         try {
-            List<ThirdPartyDO> thirdPartyList=getConsentService().getThirdParties();
-            for(ThirdPartyDO thirdParty:thirdPartyList){
-                ThirdPartyDTO thirdPartyDTO=new ThirdPartyDTO();
+            List<ThirdPartyDO> thirdPartyList = getConsentService().getThirdParties();
+            for (ThirdPartyDO thirdParty : thirdPartyList) {
+                ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO();
                 thirdPartyDTO.setThirdPartyId(thirdParty.getThirdPartyId());
                 thirdPartyDTO.setThirdPartyName(thirdParty.getThirdPartyName());
                 thirdPartyDTOList.add(thirdPartyDTO);
@@ -402,7 +404,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationThirdPartyPost(ThirdPartyDTO thirdParty) {
-        ThirdPartyDO thirdPartyDO=new ThirdPartyDO();
+        ThirdPartyDO thirdPartyDO = new ThirdPartyDO();
         thirdPartyDO.setThirdPartyName(thirdParty.getThirdPartyName());
         try {
             getConsentService().setThirdParty(thirdPartyDO);
@@ -414,7 +416,7 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationThirdPartyPut(ThirdPartyDTO thirdParty) {
-        ThirdPartyDO thirdPartyDO=new ThirdPartyDO();
+        ThirdPartyDO thirdPartyDO = new ThirdPartyDO();
         thirdPartyDO.setThirdPartyId(thirdParty.getThirdPartyId());
         thirdPartyDO.setThirdPartyName(thirdParty.getThirdPartyName());
         try {
@@ -427,9 +429,9 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationThirdPartyDelete(Integer id) {
-        ThirdPartyDTO thirdPartyDTO=new ThirdPartyDTO();
+        ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO();
         try {
-            ThirdPartyDO thirdParty=getConsentService().deleteThirdParty(id);
+            ThirdPartyDO thirdParty = getConsentService().deleteThirdParty(id);
             thirdPartyDTO.setThirdPartyName(thirdParty.getThirdPartyName());
         } catch (DataAccessException e) {
             e.printStackTrace();

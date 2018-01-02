@@ -68,9 +68,10 @@ public class ConsentApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "internal server error") })
 
-    public Response consentConfigurationDataControllerGet(@ApiParam(value = "Id of the data controller to be get",required=true) @QueryParam("dataControllerId")  Integer dataControllerId)
+    public Response consentConfigurationDataControllerGet(@ApiParam(value = "Id of the data controller to be get",
+            required=true) @QueryParam("organizationName")  String organizationName)
     {
-    return delegate.consentConfigurationDataControllerGet(dataControllerId);
+    return delegate.consentConfigurationDataControllerGet(organizationName);
     }
     @POST
     @Path("/configuration/dataController")

@@ -27,7 +27,7 @@ public interface ConsentBackend {
     public void setConsentDetailsForUser(ConsentDO consentDO,ServicesDO[] services) throws DataAccessException;
     public void revokeConsent(String subjectName,List<ServicesDO> servicesList) throws DataAccessException;
     public void setDataController(DataControllerDO dataControllerDO) throws DataAccessException;
-    public DataControllerDO getDataController(int dataControllerId) throws DataAccessException;
+    public DataControllerDO getDataController(String organizationName) throws DataAccessException;
     public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException;
     public void deleteDataController(int dataControllerId) throws DataAccessException;
     public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
