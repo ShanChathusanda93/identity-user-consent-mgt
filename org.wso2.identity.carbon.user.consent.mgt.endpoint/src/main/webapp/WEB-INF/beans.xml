@@ -7,7 +7,7 @@
     <bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer"/>
     <jaxrs:server id="services" address="/">
         <jaxrs:serviceBeans>
-            <bean class="identity_user_consent_mgt_endpoint.ConsentApi"/>
+            <bean class="org.wso2.identity.carbon.user.consent.mgt.endpoint.ConsentApi"/>
             
         </jaxrs:serviceBeans>
         <jaxrs:providers>

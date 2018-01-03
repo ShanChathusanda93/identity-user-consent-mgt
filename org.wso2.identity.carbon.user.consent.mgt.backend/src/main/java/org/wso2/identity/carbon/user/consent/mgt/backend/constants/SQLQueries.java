@@ -138,8 +138,7 @@ public class SQLQueries {
             "GROUP BY A.PURPOSE_ID,A.PURPOSE_CAT_ID;";
 
     public static final String PERSONALLY_IDENTIFIABLE_INFO_CAT_UPDATE_QUERY="UPDATE user_consent.PII_CATEGORY\n" +
-            "SET PII_CAT=?, PII_CAT_DESCRIPTION=?, SENSITIVITY=?" +
-            "WHERE PII_CAT_ID=?;";
+            "SET PII_CAT=?, PII_CAT_DESCRIPTION=?, SENSITIVITY=? WHERE PII_CAT_ID=?;";
 
     public static final String PURPOSE_DETAILS_UPDATE_QUERY="UPDATE user_consent.PURPOSES" +
             "SET PURPOSE=?,PRIMARY_PURPOSE=?,TERMINATION=?,THIRD_PARTY_DIS=?,THIRD_PARTY_ID=?" +
@@ -181,12 +180,12 @@ public class SQLQueries {
 
     public static final String DATA_CONTROLLER_UPDATE_QUERY="UPDATE DATA_CONTROLLER\n" +
             "SET ORGANIZATION_NAME=?,\n" +
-            "CONTACT_NAME=?\n" +
-            "STREET=?\n" +
-            "COUNTRY=?\n" +
-            "EMAIL=?\n" +
-            "PHONE_NUMBER=?\n" +
-            "PUBLIC_KEY=?\n" +
+            "CONTACT_NAME=?,\n" +
+            "STREET=?,\n" +
+            "COUNTRY=?,\n" +
+            "EMAIL=?,\n" +
+            "PHONE_NUMBER=?,\n" +
+            "PUBLIC_KEY=?,\n" +
             "POLICY_URL=?\n" +
             "WHERE DATA_CONTROLLER_ID=?;";
 

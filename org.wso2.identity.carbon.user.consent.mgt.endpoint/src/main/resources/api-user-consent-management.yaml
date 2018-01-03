@@ -63,34 +63,14 @@ produces:
   - application/json
 
 paths:
-#  /consent/{subjectName}:
-#    get:
-#      summary: "Getting consent details"
-#      description: "Getting consent details of an user to populate the UI"
-#      tags:
-#        - "Data Retrieval"
-#      parameters:
-#        - $ref: '#/parameters/subjectName'
-#      responses:
-#        200:
-#          description: "successful operation"
-#          schema:
-#            $ref: '#/definitions/Consent'
-#        400:
-#          description: "invalid subject name supplied"
-#        404:
-#          description: "consent for this subject name not found"
-#
-#this one is similar to /consent/{subjectName}/serviceList
-
-  /consent/{subjectName}/thirdParty:
+  /consent/{user-name}/thirdParty:
     get:
       summary: "Getting consent details by third party name"
       description: "Getting consent details regarding to the third party which operated on the user data"
       tags:
         - "Data Retrieval"
       parameters:
-        - $ref: '#/parameters/subjectName'
+        - $ref: '#/parameters/user-name'
         - $ref: '#/parameters/thirdPartyId'
       responses:
         200:
@@ -102,14 +82,14 @@ paths:
         404:
           description: "consent not found"
 
-  /consent/{subjectName}/serviceList:
+  /consent/{user-name}/serviceList:
     get:
       summary: "Getting service details"
       description: "Getting details of consented services by an user"
       tags:
         - "Data Retrieval"
       parameters:
-        - $ref: '#/parameters/subjectName'
+        - $ref: '#/parameters/user-name'
       responses:
         200:
           description: "successful operation"
@@ -120,14 +100,14 @@ paths:
         404:
           description: "services not found for this subject name"
 
-  /consent/{subjectName}/services/{serviceId}:
+  /consent/{user-name}/services/{serviceId}:
     get:
       summary: "Getting services by service id"
       description: "Getting service details regarding to the subject name and the service id"
       tags:
         - "Data Retrieval"
       parameters:
-        - $ref: '#/parameters/subjectName'
+        - $ref: '#/parameters/user-name'
         - $ref: '#/parameters/serviceId'
       responses:
         200:
@@ -139,14 +119,14 @@ paths:
         404:
           description: "services not found for this subject name"
 
-  /consent/{subjectName}/services/{serviceId}/purpose:
+  /consent/{user-name}/services/{serviceId}/purpose:
     get:
       summary: "Getting details of purposes"
       description: "Getting details of purposes of a service by subject name"
       tags:
         - "Data Retrieval"
       parameters:
-        - $ref: '#/parameters/subjectName'
+        - $ref: '#/parameters/user-name'
         - $ref: '#/parameters/serviceId'
         - $ref: '#/parameters/purposeId'
       responses:
@@ -176,21 +156,19 @@ paths:
           description: "internal server error"
 
     get:
-      summary: "Getting data controller details"
-      description: "Getting data controller details by the id"
-      tags:
-        - "Data Retrieval"
-      parameters:
-        - $ref: '#/parameters/organizationName'
+      summary: "Getting all data controllers details"
+      description: "Getting all data controllers details for configuration"
       responses:
         200:
-          description: "successful operation"
+          description: "Successful Operation"
           schema:
-            $ref: '#/definitions/DataControllerInput'
+            type: "array"
+            items:
+              $ref: '#/definitions/DataControllerInput'
         404:
-          description: "content not found"
+          description: "Content not found"
         500:
-          description: "internal server error"
+          description: "Internal server error"
 
     put:
       summary: "Updating the data controller details"
@@ -202,6 +180,8 @@ paths:
       responses:
         200:
           description: "successfully updated the data controller"
+          schema:
+            $ref: '#/definitions/DataControllerInput'
         500:
           description: "internal server error"
 
@@ -219,6 +199,24 @@ paths:
           description: "Content not found"
         500:
           description: "Internal server error"
+
+  /consent/configuration/data-controller/id:
+    get:
+      summary: "Getting data controller details"
+      description: "Getting data controller details by the id"
+      tags:
+        - "Data Retrieval"
+      parameters:
+        - $ref: '#/parameters/dataControllerId'
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: '#/definitions/DataControllerInput'
+        404:
+          description: "content not found"
+        500:
+          description: "internal server error"
 
   /consent/configuration/purpose-category:
     post:
@@ -329,6 +327,21 @@ paths:
         500:
           description: "Internal server error"
 
+  /consent/configuration/personal-info-cat/id:
+    get:
+      summary: "Getting a personal info cat"
+      description: "Getting details of a personal info cat by id"
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: "Successful Operation"
+          schema:
+            $ref: '#/definitions/PiiCategory'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
 
   /consent/configuration/service:
     post:
@@ -517,14 +530,14 @@ paths:
         500:
           description: "internal server error"
 
-  /consent/{subjectName}/receipt:
+  /consent/{user-name}/receipt:
     get:
       summary: "Creating consent receipt"
       description: "Getting consent details of an user to create the consent receipt"
       tags:
         - "Consent Receipt"
       parameters:
-        - $ref: '#/parameters/subjectName'
+        - $ref: '#/parameters/user-name'
       responses:
         200:
           description: "successful operation"
@@ -1008,10 +1021,10 @@ definitions:
     ]
     
 parameters:
-  subjectName:
-    name: "subjectName"
+  user-name:
+    name: "user-name"
     in: "path"
-    description: "User name to get the consent details to an user"
+    description: "user name to filter users"
     required: true
     type: "string"
 
@@ -1074,7 +1087,7 @@ parameters:
   id:
     name: "categoryId"
     in: "query"
-    description: "Category id for delete"
+    description: "Category id"
     required: true
     type: "integer"
     format: "int32"
@@ -1110,12 +1123,13 @@ parameters:
     schema:
       $ref: '#/definitions/ConsentRevokeList'
 
-  organizationName:
-    name: "organizationName"
+  dataControllerId:
+    name: "dataControllerId"
     in: "query"
     description: "Name of the data controller to be get"
     required: true
-    type: "String"
+    type: "integer"
+    format: "int32"
 
   purposeCategory:
     name: "purposeCategory"

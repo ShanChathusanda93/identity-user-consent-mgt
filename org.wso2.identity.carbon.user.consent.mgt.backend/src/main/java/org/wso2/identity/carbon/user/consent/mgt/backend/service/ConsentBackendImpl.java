@@ -1,8 +1,8 @@
 package org.wso2.identity.carbon.user.consent.mgt.backend.service;
 
 import org.json.simple.JSONObject;
-import org.wso2.identity.carbon.user.consent.mgt.backend.DAO.ConsentDao;
-import org.wso2.identity.carbon.user.consent.mgt.backend.JSONParserLayer.JSONParser;
+import org.wso2.identity.carbon.user.consent.mgt.backend.dao.ConsentDao;
+import org.wso2.identity.carbon.user.consent.mgt.backend.jsonParser.JSONParser;
 import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
@@ -57,9 +57,15 @@ public class ConsentBackendImpl implements ConsentBackend {
     }
 
     @Override
-    public DataControllerDO getDataController(String organizationName) throws DataAccessException {
-        DataControllerDO dataControllerDO = consentDao.getDataController(organizationName);
-        return dataControllerDO;
+    public List<DataControllerDO> getDataControllerList() throws DataAccessException {
+        List<DataControllerDO> dataControllerList = consentDao.getDataControllerList();
+        return dataControllerList;
+    }
+
+    @Override
+    public DataControllerDO getDataControllerById(int id) throws DataAccessException {
+        DataControllerDO dataController=consentDao.getDataController(id);
+        return dataController;
     }
 
     @Override
@@ -74,8 +80,9 @@ public class ConsentBackendImpl implements ConsentBackend {
 
     //-- Personally Identifiable Info Category Configuration
     @Override
-    public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
-        consentDao.addPiiCategory(piiCategoryDO);
+    public PiiCategoryDO setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
+        PiiCategoryDO piiCategory=consentDao.addPiiCategory(piiCategoryDO);
+        return piiCategory;
     }
 
     @Override
@@ -85,13 +92,20 @@ public class ConsentBackendImpl implements ConsentBackend {
     }
 
     @Override
-    public void updatePersonallyIdentifiableInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
-        consentDao.updatePersonallyIdentifiableInfoCat(piiCategoryDO);
+    public PiiCategoryDO updatePersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
+        PiiCategoryDO piiCategory=consentDao.updatePersonalInfoCat(piiCategoryDO);
+        return piiCategory;
     }
 
     @Override
     public PiiCategoryDO deletePersonalInfoCat(int categoryId) throws DataAccessException {
         PiiCategoryDO piiCategory = consentDao.deletePersonalInfoCat(categoryId);
+        return piiCategory;
+    }
+
+    @Override
+    public PiiCategoryDO getPersonalInfoCatById(int categoryId) throws DataAccessException {
+        PiiCategoryDO piiCategory=consentDao.getPersonalInfoCatById(categoryId);
         return piiCategory;
     }
 

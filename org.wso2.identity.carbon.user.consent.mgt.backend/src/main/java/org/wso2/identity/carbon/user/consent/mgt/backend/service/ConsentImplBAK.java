@@ -1,6 +1,6 @@
 package org.wso2.identity.carbon.user.consent.mgt.backend.service;
 
-import org.wso2.identity.carbon.user.consent.mgt.backend.DAO.ConsentDao;
+import org.wso2.identity.carbon.user.consent.mgt.backend.dao.ConsentDao;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;

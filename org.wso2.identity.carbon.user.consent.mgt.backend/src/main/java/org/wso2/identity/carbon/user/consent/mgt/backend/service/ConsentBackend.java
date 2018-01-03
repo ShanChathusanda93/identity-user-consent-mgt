@@ -1,7 +1,6 @@
 package org.wso2.identity.carbon.user.consent.mgt.backend.service;
 
 import org.json.simple.JSONObject;
-import org.wso2.identity.carbon.user.consent.mgt.backend.DAO.ConsentDao;
 import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
@@ -11,7 +10,6 @@ import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ThirdPartyDO;
 
-import javax.xml.crypto.Data;
 import java.text.ParseException;
 import java.util.List;
 
@@ -26,14 +24,19 @@ public interface ConsentBackend {
     public ConsentDO getSubjectName(String subjectName) throws DataAccessException;
     public void setConsentDetailsForUser(ConsentDO consentDO,ServicesDO[] services) throws DataAccessException;
     public void revokeConsent(String subjectName,List<ServicesDO> servicesList) throws DataAccessException;
+
     public void setDataController(DataControllerDO dataControllerDO) throws DataAccessException;
-    public DataControllerDO getDataController(String organizationName) throws DataAccessException;
+    public List<DataControllerDO> getDataControllerList() throws DataAccessException;
     public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException;
-    public void deleteDataController(int dataControllerId) throws DataAccessException;
-    public void setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
+    public void deleteDataController(int id) throws DataAccessException;
+    public DataControllerDO getDataControllerById(int id) throws DataAccessException;
+
+    public PiiCategoryDO setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
     public List<PiiCategoryDO> getPersonalIdentifyInfoCat() throws DataAccessException;
-    public void updatePersonallyIdentifiableInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
+    public PiiCategoryDO updatePersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
     public PiiCategoryDO deletePersonalInfoCat(int categoryId) throws DataAccessException;
+    public PiiCategoryDO getPersonalInfoCatById(int categoryId) throws DataAccessException;
+
     public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException;
     public List<PurposeDetailsDO> getPurposeDetailsForConf() throws DataAccessException;
     public void updatePurpose(PurposeDetailsDO purpose) throws DataAccessException;
