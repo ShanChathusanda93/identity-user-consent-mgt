@@ -1419,9 +1419,9 @@ public class ConsentDao extends DBConnect implements MainDao {
                     log.error("Rollback error. - "+e1.getMessage(),e);
                     throw new DataAccessException("Rollback error. - "+e1.getMessage(),e);
                 }
-                log.error("Database error. Could not delete the personally identifiablr info cat." +
+                log.error("Database error. Could not delete the personally identifiable info cat." +
                         " - " + e.getMessage(), e);
-                throw new DataAccessException("Database error. Could not delete the personally identifiablr info cat." +
+                throw new DataAccessException("Database error. Could not delete the personally identifiable info cat." +
                         " - " + e.getMessage(), e);
             } finally {
                 DBUtils.closeAllConnections(connection, deletePreparedStatement, selectPreparedStatement, resultSet);
