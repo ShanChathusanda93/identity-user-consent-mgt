@@ -111,8 +111,9 @@ public class ConsentBackendImpl implements ConsentBackend {
 
     //- Purpose Configuration
     @Override
-    public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException {
-        consentDao.addPurposeDetails(purpose);
+    public PurposeDetailsDO setPurpose(PurposeDetailsDO purpose) throws DataAccessException {
+        PurposeDetailsDO purposeDetails=consentDao.addPurposeDetails(purpose);
+        return purposeDetails;
     }
 
     @Override
@@ -122,13 +123,20 @@ public class ConsentBackendImpl implements ConsentBackend {
     }
 
     @Override
-    public void updatePurpose(PurposeDetailsDO purpose) throws DataAccessException {
-        consentDao.updatePurposeDetails(purpose);
+    public PurposeDetailsDO updatePurpose(PurposeDetailsDO purpose) throws DataAccessException {
+        PurposeDetailsDO purposeDetailsDO=consentDao.updatePurposeDetails(purpose);
+        return purposeDetailsDO;
     }
 
     @Override
     public PurposeDetailsDO deletePurpose(int purposeId) throws DataAccessException {
         PurposeDetailsDO purpose = consentDao.deletePurpose(purposeId);
+        return purpose;
+    }
+
+    @Override
+    public PurposeDetailsDO getPurposeDetailsById(int id) throws DataAccessException {
+        PurposeDetailsDO purpose=consentDao.getPurposeDetailsById(id);
         return purpose;
     }
 

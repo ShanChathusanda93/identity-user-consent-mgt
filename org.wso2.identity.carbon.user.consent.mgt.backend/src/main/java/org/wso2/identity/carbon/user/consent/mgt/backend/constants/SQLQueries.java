@@ -83,7 +83,7 @@ public class SQLQueries {
             "AND A.SERVICE_ID=?\n" +
             "AND A.SERVICE_ID=B.SERVICE_ID;";
 
-    public static final String SERVICE_PURPOSES_BY_USER_BY_SERVICE_BY_PURPOSE_QUERY="SELECT A.SGUID,A.SERVICE_ID,\n" +
+    public static final String SERVICE_PURPOSES_BY_USER_BY_SERVICE_BY_PURPOSE_QUERY = "SELECT A.SGUID,A.SERVICE_ID,\n" +
             "B.SERVICE_DESCRIPTION,\n" +
             "A.PURPOSE_ID,\n" +
             "C.PURPOSE,C.PRIMARY_PURPOSE,C.TERMINATION,C.THIRD_PARTY_DIS,C.THIRD_PARTY_ID,\n" +
@@ -106,7 +106,7 @@ public class SQLQueries {
             "AND C.PURPOSE_ID=E.PURPOSE_ID\n" +
             "AND E.PII_CAT_ID=F.PII_CAT_ID;";
 
-    public static final String PURPOSE_BY_USER_BY_SERVICE_QUERY="SELECT A.SGUID,A.SERVICE_ID,B.SERVICE_DESCRIPTION,A.PURPOSE_ID,A.STATUS\n" +
+    public static final String PURPOSE_BY_USER_BY_SERVICE_QUERY = "SELECT A.SGUID,A.SERVICE_ID,B.SERVICE_DESCRIPTION,A.PURPOSE_ID,A.STATUS\n" +
             "FROM SERVICE_MAP_CRID AS A,SERVICES AS B\n" +
             "WHERE A.SGUID=?\n" +
             "AND A.STATUS=\"Approved\"\n" +
@@ -114,7 +114,7 @@ public class SQLQueries {
             "AND A.PURPOSE_ID=?\n" +
             "AND A.SERVICE_ID=B.SERVICE_ID;";
 
-    public static final String SENSITIVE_PERSONAL_INFO_CATEGORY_QUERY="SELECT C.PII_CAT_ID,C.PII_CAT,A.PURPOSE_ID ,B.PURPOSE,D.SGUID\n" +
+    public static final String SENSITIVE_PERSONAL_INFO_CATEGORY_QUERY = "SELECT C.PII_CAT_ID,C.PII_CAT,A.PURPOSE_ID ,B.PURPOSE,D.SGUID\n" +
             "FROM user_consent.PURPOSE_MAP_PII_CAT AS A," +
             "user_consent.PURPOSES AS B," +
             "user_consent.PII_CATEGORY AS C," +
@@ -126,7 +126,7 @@ public class SQLQueries {
             "AND C.SENSITIVITY=1\n" +
             "GROUP BY A.PII_CAT_ID,B.PURPOSE_ID;";
 
-    public static final String PURPOSE_CATEGORIES_QUERY="SELECT A.PURPOSE_ID,C.PURPOSE,A.PURPOSE_CAT_ID,B.PURPOSE_CAT_SHORT_CODE\n" +
+    public static final String PURPOSE_CATEGORIES_QUERY = "SELECT A.PURPOSE_ID,C.PURPOSE,A.PURPOSE_CAT_ID,B.PURPOSE_CAT_SHORT_CODE\n" +
             "FROM user_consent.PURPOSE_MAP_PURPOSE_CAT AS A,\n" +
             "user_consent.PURPOSE_CATEGORY AS B,\n" +
             "user_consent.PURPOSES AS C,\n" +
@@ -137,26 +137,25 @@ public class SQLQueries {
             "AND D.SGUID=?\n" +
             "GROUP BY A.PURPOSE_ID,A.PURPOSE_CAT_ID;";
 
-    public static final String PERSONALLY_IDENTIFIABLE_INFO_CAT_UPDATE_QUERY="UPDATE user_consent.PII_CATEGORY\n" +
+    public static final String PERSONALLY_IDENTIFIABLE_INFO_CAT_UPDATE_QUERY = "UPDATE user_consent.PII_CATEGORY\n" +
             "SET PII_CAT=?, PII_CAT_DESCRIPTION=?, SENSITIVITY=? WHERE PII_CAT_ID=?;";
 
-    public static final String PURPOSE_DETAILS_UPDATE_QUERY="UPDATE user_consent.PURPOSES" +
-            "SET PURPOSE=?,PRIMARY_PURPOSE=?,TERMINATION=?,THIRD_PARTY_DIS=?,THIRD_PARTY_ID=?" +
-            "WHERE PURPOSE_ID=?";
+    public static final String PURPOSE_DETAILS_UPDATE_QUERY = "UPDATE user_consent.PURPOSES\n" +
+            "SET PURPOSE=?,PRIMARY_PURPOSE=?,TERMINATION=?,THIRD_PARTY_DIS=?,THIRD_PARTY_ID=? WHERE PURPOSE_ID=?";
 
-    public static final String CONSENT_BY_USER_REVOKE_QUERY="UPDATE user_consent.SERVICE_MAP_CRID" +
+    public static final String CONSENT_BY_USER_REVOKE_QUERY = "UPDATE user_consent.SERVICE_MAP_CRID" +
             "SET STATUS='Revoked',CONSENT_TIME=?" +
             "WHERE SGUID=?" +
             "AND SERVICE_ID=?" +
             "AND PURPOSE_ID=?";
 
-    public static final String PURPOSE_CATS_FOR_PURPOSE_CONF_QUERY="SELECT A.*, B.PURPOSE_CAT_SHORT_CODE\n" +
+    public static final String PURPOSE_CATS_FOR_PURPOSE_CONF_QUERY = "SELECT A.*, B.PURPOSE_CAT_SHORT_CODE\n" +
             "FROM user_consent.PURPOSE_MAP_PURPOSE_CAT AS A,\n" +
             "user_consent.PURPOSE_CATEGORY AS B\n" +
             "WHERE A.PURPOSE_CAT_ID=B.PURPOSE_CAT_ID\n" +
             "AND A.PURPOSE_ID=?;";
 
-    public static final String PERSONALLY_IDENTIFIABLR_CAT_FOR_PURPOSE_CONF_QUERY="SELECT A.*,B.PII_CAT\n" +
+    public static final String PERSONALLY_IDENTIFIABLR_CAT_FOR_PURPOSE_CONF_QUERY = "SELECT A.*,B.PII_CAT\n" +
             "FROM PURPOSE_MAP_PII_CAT AS A,PII_CATEGORY AS B\n" +
             "WHERE A.PII_CAT_ID=B.PII_CAT_ID\n" +
             "AND A.PURPOSE_ID=?;";
@@ -166,19 +165,19 @@ public class SQLQueries {
     public static final String PURPOSE_DETAILS_FOR_SERVICE_CONF_QUERY = "SELECT A.* ,B.PURPOSE FROM " +
             "SERVICE_MAP_PURPOSE AS A, PURPOSES AS B WHERE SERVICE_ID=? AND A.PURPOSE_ID=B.PURPOSE_ID;";
 
-    public static final String SERVICES_FOR_USER_VIEW_QUERY="SELECT DISTINCT A.SERVICE_ID,C.SERVICE_DESCRIPTION,B.PII_PRINCIPAL_ID,B.SGUID\n" +
+    public static final String SERVICES_FOR_USER_VIEW_QUERY = "SELECT DISTINCT A.SERVICE_ID,C.SERVICE_DESCRIPTION,B.PII_PRINCIPAL_ID,B.SGUID\n" +
             "FROM SERVICE_MAP_CRID AS A,TRANSACTION_DETAILS AS B,SERVICES AS C\n" +
             "WHERE A.SGUID=B.SGUID\n" +
             "AND B.PII_PRINCIPAL_ID=?\n" +
             "AND A.SERVICE_ID=C.SERVICE_ID;";
 
-    public static final String PURPOSE_ID_BY_USER_BY_SERVICE_QUERY="SELECT A.SGUID,A.SERVICE_ID,A.PURPOSE_ID\n" +
+    public static final String PURPOSE_ID_BY_USER_BY_SERVICE_QUERY = "SELECT A.SGUID,A.SERVICE_ID,A.PURPOSE_ID\n" +
             "FROM SERVICE_MAP_CRID AS A,PURPOSES AS B\n" +
             "WHERE A.SERVICE_ID=?\n" +
             "AND A.SGUID=?\n" +
             "AND A.PURPOSE_ID=B.PURPOSE_ID;";
 
-    public static final String DATA_CONTROLLER_UPDATE_QUERY="UPDATE DATA_CONTROLLER\n" +
+    public static final String DATA_CONTROLLER_UPDATE_QUERY = "UPDATE DATA_CONTROLLER\n" +
             "SET ORGANIZATION_NAME=?,\n" +
             "CONTACT_NAME=?,\n" +
             "STREET=?,\n" +
@@ -189,7 +188,7 @@ public class SQLQueries {
             "POLICY_URL=?\n" +
             "WHERE DATA_CONTROLLER_ID=?;";
 
-    public static final String PURPOSE_CATEGORY_UPDATE_QUERY="UPDATE PURPOSE_CATEGORY\n"+
-            "SET PURPOSE_CAT_SHORT_CODE=?,PURPOSE_CAT_DESCRIPTION=?\n"+
+    public static final String PURPOSE_CATEGORY_UPDATE_QUERY = "UPDATE PURPOSE_CATEGORY\n" +
+            "SET PURPOSE_CAT_SHORT_CODE=?,PURPOSE_CAT_DESCRIPTION=?\n" +
             "WHERE PURPOSE_CAT_ID=?;";
 }

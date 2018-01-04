@@ -147,14 +147,63 @@ public class ConsentMapping {
         return purposeDTOList;
     }
 
-    public static PurposeDetailsDO setConsentConfigurationPurpose(PurposeDTO purpose) {
+    public static PurposeDetailsDO setPurposeDTOToPurposeDetailsDO(PurposeDTO purpose) {
         PurposeDetailsDO purposeDetailsDO = new PurposeDetailsDO();
+        purposeDetailsDO.setPurposeId(purpose.getPurposeId());
         purposeDetailsDO.setPurpose(purpose.getPurpose());
         purposeDetailsDO.setPrimaryPurpose(String.valueOf(purpose.getPrimaryPurpose()));
         purposeDetailsDO.setTermination(String.valueOf(purpose.getTermination()));
         purposeDetailsDO.setThirdPartyDis(String.valueOf(purpose.getThirdPartyDisclosure()));
         purposeDetailsDO.setThirdPartyId(purpose.getThirdPartyId());
+
+        PurposeCategoryDO[] purposeCategoryDOS=new PurposeCategoryDO[purpose.getPurposeCategory().size()];
+        int i=0;
+        for(PurposeCategoryDTO purposeCategoryDTO:purpose.getPurposeCategory()){
+            purposeCategoryDOS[i]=new PurposeCategoryDO();
+            purposeCategoryDOS[i].setPurposeCatId(purposeCategoryDTO.getPurposeCategoryId());
+            i++;
+        }
+        purposeDetailsDO.setPurposeCategoryDOArr(purposeCategoryDOS);
+
+        PiiCategoryDO[] piiCategoryDOS=new PiiCategoryDO[purpose.getPiiCategory().size()];
+        i=0;
+        for(PiiCategoryDTO piiCategoryDTO:purpose.getPiiCategory()){
+            piiCategoryDOS[i]=new PiiCategoryDO();
+            piiCategoryDOS[i].setPiiCatId(piiCategoryDTO.getPiiCatId());
+            i++;
+        }
+        purposeDetailsDO.setpiiCategoryArr(piiCategoryDOS);
         return purposeDetailsDO;
+    }
+
+    public static PurposeDTO setPurposeDetailsDOToPurposeDTO(PurposeDetailsDO purpose){
+        PurposeDTO purposeDTO=new PurposeDTO();
+        purposeDTO.setPurposeId(purpose.getPurposeId());
+        purposeDTO.setPurpose(purpose.getPurpose());
+        purposeDTO.setPrimaryPurpose(Integer.valueOf(purpose.getPrimaryPurpose()));
+        purposeDTO.setTermination(purpose.getTermination());
+        purposeDTO.setThirdPartyDisclosure(Integer.valueOf(purpose.getThirdPartyDis()));
+        purposeDTO.setThirdPartyId(purpose.getThirdPartyId());
+        purposeDTO.setThirdPartyName(purpose.getThirdPartyName());
+
+        List<PurposeCategoryDTO> purposeCategoryDTOList=new ArrayList<>();
+        for(PurposeCategoryDO purposeCategoryDO:purpose.getPurposeCategoryDOArr()){
+            PurposeCategoryDTO purposeCategoryDTO=new PurposeCategoryDTO();
+            purposeCategoryDTO.setPurposeCategoryId(purposeCategoryDO.getPurposeCatId());
+            purposeCategoryDTO.setPurposeCategoryShortCode(purposeCategoryDO.getPurposeCatShortCode());
+            purposeCategoryDTOList.add(purposeCategoryDTO);
+        }
+        purposeDTO.setPurposeCategory(purposeCategoryDTOList);
+
+        List<PiiCategoryDTO> piiCategoryDTOList=new ArrayList<>();
+        for(PiiCategoryDO piiCategoryDO:purpose.getpiiCategoryArr()){
+            PiiCategoryDTO piiCategoryDTO=new PiiCategoryDTO();
+            piiCategoryDTO.setPiiCatId(piiCategoryDO.getPiiCatId());
+            piiCategoryDTO.setPiiCat(piiCategoryDO.getPiiCat());
+            piiCategoryDTOList.add(piiCategoryDTO);
+        }
+        purposeDTO.setPiiCategory(piiCategoryDTOList);
+        return purposeDTO;
     }
 
     public static List<ServiceWebFormDTO> getConsentConfigurationService(List<ServicesDO> servicesDOList) {

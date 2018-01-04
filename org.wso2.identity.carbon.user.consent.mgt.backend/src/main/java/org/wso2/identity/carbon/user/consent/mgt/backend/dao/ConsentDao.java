@@ -1387,12 +1387,14 @@ public class ConsentDao extends DBConnect implements MainDao {
             PreparedStatement deletePurposeMapPrepStat = null;
             PreparedStatement deletePreparedStatement = null;
             ResultSet resultSet = null;
+            Savepoint savepoint=null;
             String selectQuery = "SELECT PII_CAT FROM PII_CATEGORY WHERE PII_CAT_ID=?;";
             String deletePurposeMapQuery = "DELETE FROM PURPOSE_MAP_PII_CAT WHERE PII_CAT_ID=?;";
             String deleteQuery = "DELETE FROM PII_CATEGORY WHERE PII_CAT_ID=?;";
 
             try {
                 connection.setAutoCommit(false);
+                savepoint=connection.setSavepoint();
                 selectPreparedStatement = connection.prepareStatement(selectQuery);
                 selectPreparedStatement.setInt(1, categoryId);
                 resultSet = selectPreparedStatement.executeQuery();
@@ -1411,10 +1413,11 @@ public class ConsentDao extends DBConnect implements MainDao {
             } catch (SQLException e) {
                 try {
                     if (connection != null) {
-                        connection.rollback();
+                        connection.rollback(savepoint);
                     }
                 } catch (SQLException e1) {
-                    e1.printStackTrace();
+                    log.error("Rollback error. - "+e1.getMessage(),e);
+                    throw new DataAccessException("Rollback error. - "+e1.getMessage(),e);
                 }
                 log.error("Database error. Could not delete the personally identifiablr info cat." +
                         " - " + e.getMessage(), e);
@@ -1467,10 +1470,13 @@ public class ConsentDao extends DBConnect implements MainDao {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
             ResultSet resultSet = null;
+            Savepoint savepoint=null;
 
             String query = "SELECT A.*,B.THIRD_PARTY_NAME FROM user_consent.PURPOSES AS A,user_consent.THIRD_PARTY AS" +
                     " B WHERE A.THIRD_PARTY_ID=B.THIRD_PARTY_ID;";
             try {
+                connection.setAutoCommit(false);
+                savepoint=connection.setSavepoint();
                 preparedStatement = connection.prepareStatement(query);
                 resultSet = preparedStatement.executeQuery();
                 List<PurposeDetailsDO> purposeDetailsDOList = new ArrayList<>();
@@ -1483,11 +1489,11 @@ public class ConsentDao extends DBConnect implements MainDao {
                             .getInt(1)).toArray(new PurposeCategoryDO[0]);
                     purposeDetailsDO.setPurposeCategoryDOArr(purposeCategoryDOArr);
 
-                    purposeDetailsDO.setPrimaryPurpose(resultSet.getString(4));
-                    purposeDetailsDO.setTermination(resultSet.getString(5));
-                    purposeDetailsDO.setThirdPartyDis(resultSet.getString(6));
-                    purposeDetailsDO.setThirdPartyId(resultSet.getInt(7));
-                    purposeDetailsDO.setthirdPartyName(resultSet.getString(8));
+                    purposeDetailsDO.setPrimaryPurpose(resultSet.getString(3));
+                    purposeDetailsDO.setTermination(resultSet.getString(4));
+                    purposeDetailsDO.setThirdPartyDis(resultSet.getString(5));
+                    purposeDetailsDO.setThirdPartyId(resultSet.getInt(6));
+                    purposeDetailsDO.setthirdPartyName(resultSet.getString(7));
 
                     PiiCategoryDO[] piiCategoryDOArr = getPersonalIdentifyCatForPurposeConf(connection, resultSet
                             .getInt(1))
@@ -1495,8 +1501,15 @@ public class ConsentDao extends DBConnect implements MainDao {
                     purposeDetailsDO.setpiiCategoryArr(piiCategoryDOArr);
                     purposeDetailsDOList.add(purposeDetailsDO);
                 }
+                connection.commit();
                 return purposeDetailsDOList;
             } catch (SQLException e) {
+                try {
+                    connection.rollback(savepoint);
+                } catch (SQLException e1) {
+                    log.error("Rollback error. - "+e1.getMessage(),e);
+                    throw new DataAccessException("Rollback error. - "+e1.getMessage(),e);
+                }
                 log.error("Database error. Could not get purpose details for config. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not get purpose details for config. - " + e
                         .getMessage(), e);
@@ -1574,18 +1587,21 @@ public class ConsentDao extends DBConnect implements MainDao {
      * @override PurposeDetails DAO to add purpose details to the database
      */
     @Override
-    public void addPurposeDetails(PurposeDetailsDO purpose) throws DataAccessException {
+    public PurposeDetailsDO addPurposeDetails(PurposeDetailsDO purpose) throws DataAccessException {
+        PurposeDetailsDO purposeDetails=new PurposeDetailsDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
-            PreparedStatement preparedStatementPurposeId = null;
+            PreparedStatement purposeIdPrepStat = null;
             ResultSet resultSet = null;
+            Savepoint savepoint=null;
 
             String query = "INSERT INTO user_consent.PURPOSES(PURPOSE,PRIMARY_PURPOSE,TERMINATION,THIRD_PARTY_DIS," +
                     "THIRD_PARTY_ID) VALUES(?,?,?,?,?)";
-            String purposeIdQuery = "SELECT A.PURPOSE_ID FROM PURPOSES AS A WHERE PURPOSE=?";
+            String purposeIdQuery = "SELECT PURPOSE_ID FROM PURPOSES WHERE PURPOSE=?";
             try {
                 connection.setAutoCommit(false);
+                savepoint=connection.setSavepoint();
                 preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, purpose.getPurpose());
                 preparedStatement.setString(2, purpose.getPrimaryPurpose());
@@ -1594,26 +1610,30 @@ public class ConsentDao extends DBConnect implements MainDao {
                 preparedStatement.setInt(5, purpose.getThirdPartyId());
                 preparedStatement.executeUpdate();
 
-                preparedStatementPurposeId = connection.prepareStatement(purposeIdQuery);
-                preparedStatement.setString(1, purpose.getPurpose());
-                resultSet = preparedStatementPurposeId.executeQuery();
+                purposeIdPrepStat = connection.prepareStatement(purposeIdQuery);
+                purposeIdPrepStat.setString(1, purpose.getPurpose());
+                resultSet = purposeIdPrepStat.executeQuery();
                 resultSet.first();
                 mapPurposeWithPurposeCategories(connection, resultSet.getInt(1), purpose.getPurposeCategoryDOArr());
                 mapPurposeWithPersonalInfoCategories(connection, resultSet.getInt(1), purpose.getpiiCategoryArr());
                 connection.commit();
+                purposeDetails=getPurposeDetailsById(resultSet.getInt(1));
                 log.info("Successfully added the purpose details to the database");
             } catch (SQLException e) {
                 try {
-                    connection.rollback();
+                    connection.rollback(savepoint);
                 } catch (SQLException e1) {
-                    e1.printStackTrace();
+                    log.error("Rollback error. Could not rollback purpose adding. - "+e.getMessage());
+                    throw new DataAccessException("Rollback error. Could not rollback purpose adding. - "+e
+                            .getMessage(),e);
                 }
                 log.error("Database error. Could not add purpose details. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not add purpose details. - " + e.getMessage(), e);
             } finally {
-                DBUtils.closeAllConnections(connection, preparedStatement, preparedStatementPurposeId, resultSet);
+                DBUtils.closeAllConnections(connection, preparedStatement, purposeIdPrepStat, resultSet);
             }
         }
+        return purposeDetails;
     }
 
     /**
@@ -1631,8 +1651,8 @@ public class ConsentDao extends DBConnect implements MainDao {
         String query = "INSERT INTO PURPOSE_MAP_PURPOSE_CAT(PURPOSE_ID,PURPOSE_CAT_ID)\n" +
                 "VALUES (?,?) ON DUPLICATE KEY UPDATE PURPOSE_CAT_ID=?;";
         try {
+            preparedStatement = connection.prepareStatement(query);
             for (PurposeCategoryDO purposeCategory : purposeCategories) {
-                preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setInt(1, purposeId);
                 preparedStatement.setInt(2, purposeCategory.getPurposeCatId());
                 preparedStatement.setInt(3, purposeCategory.getPurposeCatId());
@@ -1643,7 +1663,7 @@ public class ConsentDao extends DBConnect implements MainDao {
             throw new DataAccessException("Database error. Could not map purpose to purpose category. - " + e
                     .getMessage(), e);
         } finally {
-            DBUtils.closeAllConnections(connection, preparedStatement);
+            DBUtils.closeAllConnections(preparedStatement);
         }
     }
 
@@ -1675,7 +1695,7 @@ public class ConsentDao extends DBConnect implements MainDao {
             throw new DataAccessException("Database error. Could not map purpose to personally identifiable info " +
                     "category. - " + e.getMessage(), e);
         } finally {
-            DBUtils.closeAllConnections(connection, preparedStatement);
+            DBUtils.closeAllConnections(preparedStatement);
         }
     }
 
@@ -1688,14 +1708,17 @@ public class ConsentDao extends DBConnect implements MainDao {
      * @override PurposeDetails org.wso2.identity.carbon.user.consent.mgt.backend.constants.DAO to update purposes to the database
      */
     @Override
-    public void updatePurposeDetails(PurposeDetailsDO purpose) throws DataAccessException {
+    public PurposeDetailsDO updatePurposeDetails(PurposeDetailsDO purpose) throws DataAccessException {
+        PurposeDetailsDO purposeDetailsDO=new PurposeDetailsDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
+            Savepoint savepoint=null;
 
             String query = SQLQueries.PURPOSE_DETAILS_UPDATE_QUERY;
             try {
                 connection.setAutoCommit(false);
+                savepoint=connection.setSavepoint();
                 preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, purpose.getPurpose());
                 preparedStatement.setString(2, purpose.getPrimaryPurpose());
@@ -1710,12 +1733,15 @@ public class ConsentDao extends DBConnect implements MainDao {
                 mapPurposeWithPurposeCategories(connection, purpose.getPurposeId(), purpose.getPurposeCategoryDOArr());
                 mapPurposeWithPersonalInfoCategories(connection, purpose.getPurposeId(), purpose.getpiiCategoryArr());
                 connection.commit();
+                purposeDetailsDO=getPurposeDetailsById(purpose.getPurposeId());
                 log.info("Successfully updated the purpose details to the database.");
             } catch (SQLException e) {
                 try {
-                    connection.rollback();
+                    connection.rollback(savepoint);
                 } catch (SQLException e1) {
-                    e1.printStackTrace();
+                    log.error("Rollback error. Could not rollback the purpose update. - "+e1.getMessage(),e1);
+                    throw new DataAccessException("Rollback error. Could not rollback the purpose update. - "+e1
+                            .getMessage(),e1);
                 }
                 log.error("Database error. Could not update purpose details. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not update purpose details. - " + e.getMessage(), e);
@@ -1723,6 +1749,7 @@ public class ConsentDao extends DBConnect implements MainDao {
                 DBUtils.closeAllConnections(connection, preparedStatement);
             }
         }
+        return purposeDetailsDO;
     }
 
     /**
@@ -1828,12 +1855,50 @@ public class ConsentDao extends DBConnect implements MainDao {
                 try {
                     connection.rollback();
                 } catch (SQLException e1) {
-                    e1.printStackTrace();
+                    log.error("Rollback error. Could not rollback the purpose delete. - "+e1.getMessage(),e1);
+                    throw new DataAccessException("Rollback error. Could not rollback the purpose delete. - " +
+                            ""+e1.getMessage(),e1);
                 }
                 log.error("Database error. Could not delete the purpose. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not delete the purpose. - " + e.getMessage(), e);
             }
 
+        }
+        return purpose;
+    }
+
+    public PurposeDetailsDO getPurposeDetailsById(int id) throws DataAccessException{
+        PurposeDetailsDO purpose=new PurposeDetailsDO();
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+            PreparedStatement selectPrepStat=null;
+            ResultSet resultSet=null;
+
+            String selectQuery="SELECT A.*,B.THIRD_PARTY_NAME FROM PURPOSES AS A,THIRD_PARTY AS B WHERE B" +
+                    ".THIRD_PARTY_ID=A.THIRD_PARTY_ID AND PURPOSE_ID=?;";
+            try {
+                selectPrepStat=connection.prepareStatement(selectQuery);
+                selectPrepStat.setInt(1,id);
+                resultSet=selectPrepStat.executeQuery();
+                resultSet.first();
+                purpose.setPurposeId(resultSet.getInt(1));
+                purpose.setPurpose(resultSet.getString(2));
+                purpose.setPrimaryPurpose(resultSet.getString(3));
+                purpose.setTermination(resultSet.getString(4));
+                purpose.setThirdPartyDis(resultSet.getString(5));
+                purpose.setThirdPartyId(resultSet.getInt(6));
+                purpose.setthirdPartyName(resultSet.getString(7));
+
+                PurposeCategoryDO[] purposeCategoryDOS= getPurposeCatsForPurposeConf(connection, id).toArray(new PurposeCategoryDO[0]);
+                purpose.setPurposeCategoryDOArr(purposeCategoryDOS);
+
+                PiiCategoryDO[] piiCategoryDOS= getPersonalIdentifyCatForPurposeConf(connection, id).toArray(new PiiCategoryDO[0]);
+                purpose.setpiiCategoryArr(piiCategoryDOS);
+            } catch (SQLException e) {
+                log.error("Database error. Could not get details of the purpose. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get details of the purpose. - "+e.getMessage
+                        (),e);
+            }
         }
         return purpose;
     }

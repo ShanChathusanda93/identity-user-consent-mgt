@@ -44,6 +44,7 @@ public abstract class ConsentApiService {
     public abstract Response consentConfigurationPurposeCategoryPut(PurposeCategoryDTO purposeCategory);
     public abstract Response consentConfigurationPurposeDelete(Integer categoryId);
     public abstract Response consentConfigurationPurposeGet();
+    public abstract Response consentConfigurationPurposeIdGet(Integer categoryId);
     public abstract Response consentConfigurationPurposePost(PurposeDTO purpose);
     public abstract Response consentConfigurationPurposePut(PurposeDTO purpose);
     public abstract Response consentConfigurationServiceDelete(Integer categoryId);

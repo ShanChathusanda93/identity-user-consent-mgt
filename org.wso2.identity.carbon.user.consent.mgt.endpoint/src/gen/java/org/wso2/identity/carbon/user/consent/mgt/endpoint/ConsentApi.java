@@ -286,6 +286,22 @@ public class ConsentApi  {
     {
     return delegate.consentConfigurationPurposeGet();
     }
+    @GET
+    @Path("/configuration/purpose/id")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Get details of a purpose", notes = "Get details of a purpose by purpose id", response = PurposeDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful operation"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationPurposeIdGet(@ApiParam(value = "Category id",required=true) @QueryParam("categoryId")  Integer categoryId)
+    {
+    return delegate.consentConfigurationPurposeIdGet(categoryId);
+    }
     @POST
     @Path("/configuration/purpose")
     @Consumes({ "application/json" })

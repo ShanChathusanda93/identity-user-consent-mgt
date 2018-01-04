@@ -463,6 +463,22 @@ paths:
         500:
           description: "Internal server error"
 
+  /consent/configuration/purpose/id:
+    get:
+      summary: "Get details of a purpose"
+      description: "Get details of a purpose by purpose id"
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            $ref: '#/definitions/Purpose'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
+
   /consent/configuration/third-party:
     post:
       summary: "Add third party"

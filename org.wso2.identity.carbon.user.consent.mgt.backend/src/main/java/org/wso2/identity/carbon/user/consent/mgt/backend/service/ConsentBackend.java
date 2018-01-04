@@ -37,10 +37,12 @@ public interface ConsentBackend {
     public PiiCategoryDO deletePersonalInfoCat(int categoryId) throws DataAccessException;
     public PiiCategoryDO getPersonalInfoCatById(int categoryId) throws DataAccessException;
 
-    public void setPurpose(PurposeDetailsDO purpose) throws DataAccessException;
+    public PurposeDetailsDO setPurpose(PurposeDetailsDO purpose) throws DataAccessException;
     public List<PurposeDetailsDO> getPurposeDetailsForConf() throws DataAccessException;
-    public void updatePurpose(PurposeDetailsDO purpose) throws DataAccessException;
+    public PurposeDetailsDO updatePurpose(PurposeDetailsDO purpose) throws DataAccessException;
     public PurposeDetailsDO deletePurpose(int purposeId) throws DataAccessException;
+    public PurposeDetailsDO getPurposeDetailsById(int id) throws DataAccessException;
+
     public void setService(ServicesDO service) throws DataAccessException;
     public List<ServicesDO> getServicesForConf() throws DataAccessException;
     public void updateService(ServicesDO services) throws DataAccessException;

@@ -1,5 +1,16 @@
 package org.wso2.identity.carbon.user.consent.mgt.endpoint.impl;
 
+import org.json.simple.JSONObject;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.model.ThirdPartyDO;
+import org.wso2.identity.carbon.user.consent.mgt.backend.service.ConsentBackend;
 import org.wso2.identity.carbon.user.consent.mgt.endpoint.ApiResponseMessage;
 import org.wso2.identity.carbon.user.consent.mgt.endpoint.ConsentApiService;
 import org.wso2.identity.carbon.user.consent.mgt.endpoint.dto.ConsentByThirdPartyDTO;
@@ -15,17 +26,6 @@ import org.wso2.identity.carbon.user.consent.mgt.endpoint.dto.ServiceWebFormDTO;
 import org.wso2.identity.carbon.user.consent.mgt.endpoint.dto.ThirdPartyDTO;
 import org.wso2.identity.carbon.user.consent.mgt.endpoint.dto.UserConsentWebFormDTO;
 import org.wso2.identity.carbon.user.consent.mgt.endpoint.mapping.ConsentMapping;
-import org.json.simple.JSONObject;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
-import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
-import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
-import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
-import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeCategoryDO;
-import org.wso2.identity.carbon.user.consent.mgt.backend.model.PurposeDetailsDO;
-import org.wso2.identity.carbon.user.consent.mgt.backend.model.ServicesDO;
-import org.wso2.identity.carbon.user.consent.mgt.backend.model.ThirdPartyDO;
-import org.wso2.identity.carbon.user.consent.mgt.backend.service.ConsentBackend;
 
 import javax.ws.rs.core.Response;
 import java.text.ParseException;
@@ -41,11 +41,11 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     @Override
     public Response consentConfigurationDataControllerPost(DataControllerInputDTO dataController) {
         DataControllerDO dataControllerDO = ConsentMapping.setConsentConfigurationDataController(dataController);
-        DataControllerInputDTO dataControllerDTO=new DataControllerInputDTO();
+        DataControllerInputDTO dataControllerDTO = new DataControllerInputDTO();
         try {
             getConsentService().setDataController(dataControllerDO);
-            dataControllerDO=getConsentService().getDataControllerById(dataController.getId());
-            dataControllerDTO=ConsentMapping.getConsentConfigurationDataController(dataControllerDO);
+            dataControllerDO = getConsentService().getDataControllerById(dataController.getId());
+            dataControllerDTO = ConsentMapping.getConsentConfigurationDataController(dataControllerDO);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -67,11 +67,11 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     @Override
     public Response consentConfigurationDataControllerPut(DataControllerInputDTO dataController) {
         DataControllerDO dataControllerDO = ConsentMapping.updateDataController(dataController);
-        DataControllerInputDTO dataControllerOutDTO=new DataControllerInputDTO();
+        DataControllerInputDTO dataControllerOutDTO = new DataControllerInputDTO();
         try {
             getConsentService().updateDataController(dataControllerDO);
-            dataControllerDO=getConsentService().getDataControllerById(dataController.getId());
-            dataControllerOutDTO=ConsentMapping.getConsentConfigurationDataController(dataControllerDO);
+            dataControllerDO = getConsentService().getDataControllerById(dataController.getId());
+            dataControllerOutDTO = ConsentMapping.getConsentConfigurationDataController(dataControllerDO);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -90,10 +90,10 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationDataControllerIdGet(Integer dataControllerId) {
-        DataControllerInputDTO dataControllerOutputDTO=new DataControllerInputDTO();
+        DataControllerInputDTO dataControllerOutputDTO = new DataControllerInputDTO();
         try {
-            DataControllerDO dataController=getConsentService().getDataControllerById(dataControllerId);
-            dataControllerOutputDTO=ConsentMapping.getConsentConfigurationDataController(dataController);
+            DataControllerDO dataController = getConsentService().getDataControllerById(dataControllerId);
+            dataControllerOutputDTO = ConsentMapping.getConsentConfigurationDataController(dataController);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -115,10 +115,10 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     @Override
     public Response consentConfigurationPersonalInfoCategoryPost(PiiCategoryDTO piiCategory) {
         PiiCategoryDO piiCategoryDO = ConsentMapping.setConsentConfigurationPersonalInfoCategory(piiCategory);
-        PiiCategoryDTO piiCategoryDTO=new PiiCategoryDTO();
+        PiiCategoryDTO piiCategoryDTO = new PiiCategoryDTO();
         try {
-            PiiCategoryDO piiCategoryOut=getConsentService().setPersonalInfoCat(piiCategoryDO);
-            piiCategoryDTO=ConsentMapping.setPiiCategoryDOToPiiCategoryDTO(piiCategoryOut);
+            PiiCategoryDO piiCategoryOut = getConsentService().setPersonalInfoCat(piiCategoryDO);
+            piiCategoryDTO = ConsentMapping.setPiiCategoryDOToPiiCategoryDTO(piiCategoryOut);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -128,10 +128,10 @@ public class ConsentApiServiceImpl extends ConsentApiService {
     @Override
     public Response consentConfigurationPersonalInfoCategoryPut(PiiCategoryDTO piiCategory) {
         PiiCategoryDO piiCategoryDO = ConsentMapping.updatePersonallyIdentifiableInfoCat(piiCategory);
-        PiiCategoryDTO piiCategoryDTO=new PiiCategoryDTO();
+        PiiCategoryDTO piiCategoryDTO = new PiiCategoryDTO();
         try {
-            PiiCategoryDO piiCategoryDOUpdated=getConsentService().updatePersonalInfoCat(piiCategoryDO);
-            piiCategoryDTO=ConsentMapping.setPiiCategoryDOToPiiCategoryDTO(piiCategoryDOUpdated);
+            PiiCategoryDO piiCategoryDOUpdated = getConsentService().updatePersonalInfoCat(piiCategoryDO);
+            piiCategoryDTO = ConsentMapping.setPiiCategoryDOToPiiCategoryDTO(piiCategoryDOUpdated);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -152,10 +152,10 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPersonalInfoCatIdGet(Integer categoryId) {
-        PiiCategoryDTO piiCategoryDTO=new PiiCategoryDTO();
+        PiiCategoryDTO piiCategoryDTO = new PiiCategoryDTO();
         try {
-            PiiCategoryDO piiCategory=getConsentService().getPersonalInfoCatById(categoryId);
-            piiCategoryDTO=ConsentMapping.setPiiCategoryDOToPiiCategoryDTO(piiCategory);
+            PiiCategoryDO piiCategory = getConsentService().getPersonalInfoCatById(categoryId);
+            piiCategoryDTO = ConsentMapping.setPiiCategoryDOToPiiCategoryDTO(piiCategory);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -176,32 +176,48 @@ public class ConsentApiServiceImpl extends ConsentApiService {
 
     @Override
     public Response consentConfigurationPurposePost(PurposeDTO purpose) {
-        PurposeDetailsDO purposeDetailsDO = ConsentMapping.setConsentConfigurationPurpose(purpose);
+        PurposeDetailsDO purposeDetailsDO = ConsentMapping.setPurposeDTOToPurposeDetailsDO(purpose);
+        PurposeDTO purposeDTO = new PurposeDTO();
         try {
-            getConsentService().setPurpose(purposeDetailsDO);
+            PurposeDetailsDO purposeDetailsDONew = getConsentService().setPurpose(purposeDetailsDO);
+            purposeDTO = ConsentMapping.setPurposeDetailsDOToPurposeDTO(purposeDetailsDONew);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+        return Response.ok().entity(purposeDTO).build();
     }
 
     @Override
     public Response consentConfigurationPurposePut(PurposeDTO purpose) {
-        PurposeDetailsDO purposeDO = ConsentMapping.updatePurpose(purpose);
+        PurposeDetailsDO purposeDO = ConsentMapping.setPurposeDTOToPurposeDetailsDO(purpose);
+        PurposeDTO updatedPurposeDTO=new PurposeDTO();
         try {
-            getConsentService().updatePurpose(purposeDO);
+            PurposeDetailsDO updatedPurposeDO=getConsentService().updatePurpose(purposeDO);
+            updatedPurposeDTO=ConsentMapping.setPurposeDetailsDOToPurposeDTO(updatedPurposeDO);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+        return Response.ok().entity(updatedPurposeDTO).build();
     }
 
     @Override
     public Response consentConfigurationPurposeDelete(Integer id) {
+        PurposeDTO deletedPurposeDTO = new PurposeDTO();
+        try {
+            PurposeDetailsDO deletedPurposeDO = getConsentService().deletePurpose(id);
+            deletedPurposeDTO.setPurpose(deletedPurposeDO.getPurpose());
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return Response.ok().entity(deletedPurposeDTO).build();
+    }
+
+    @Override
+    public Response consentConfigurationPurposeIdGet(Integer categoryId) {
         PurposeDTO purposeDTO = new PurposeDTO();
         try {
-            PurposeDetailsDO purpose = getConsentService().deletePurpose(id);
-            purposeDTO.setPurpose(purpose.getPurpose());
+            PurposeDetailsDO purpose = getConsentService().getPurposeDetailsById(categoryId);
+            purposeDTO = ConsentMapping.setPurposeDetailsDOToPurposeDTO(purpose);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
