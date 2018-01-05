@@ -149,7 +149,6 @@ public class ConsentMapping {
 
     public static PurposeDetailsDO setPurposeDTOToPurposeDetailsDO(PurposeDTO purpose) {
         PurposeDetailsDO purposeDetailsDO = new PurposeDetailsDO();
-        purposeDetailsDO.setPurposeId(purpose.getPurposeId());
         purposeDetailsDO.setPurpose(purpose.getPurpose());
         purposeDetailsDO.setPrimaryPurpose(String.valueOf(purpose.getPrimaryPurpose()));
         purposeDetailsDO.setTermination(String.valueOf(purpose.getTermination()));
@@ -206,7 +205,7 @@ public class ConsentMapping {
         return purposeDTO;
     }
 
-    public static List<ServiceWebFormDTO> getConsentConfigurationService(List<ServicesDO> servicesDOList) {
+    public static List<ServiceWebFormDTO> setServicesDOListToServiceWebFormDTOList(List<ServicesDO> servicesDOList) {
         List<ServiceWebFormDTO> serviceDTOList = new ArrayList<>();
         for (int i = 0; i < servicesDOList.size(); i++) {
             ServiceWebFormDTO serviceDTO = new ServiceWebFormDTO();
@@ -224,6 +223,22 @@ public class ConsentMapping {
             serviceDTOList.add(serviceDTO);
         }
         return serviceDTOList;
+    }
+
+    public static ServiceWebFormDTO setServiceDOToServiceWebFormDTO(ServicesDO servicesDO){
+        ServiceWebFormDTO serviceDTO=new ServiceWebFormDTO();
+        serviceDTO.setServiceId(servicesDO.getServiceId());
+        serviceDTO.setServiceName(servicesDO.getServiceDescription());
+
+        List<PurposeWebFormDTO> purposeDTOList=new ArrayList<>();
+        for(PurposeDetailsDO purposeDO : servicesDO.getPurposeDetailsArr()){
+            PurposeWebFormDTO purposeDTO=new PurposeWebFormDTO();
+            purposeDTO.setPurposeId(purposeDO.getPurposeId());
+            purposeDTO.setPurposeName(purposeDO.getPurpose());
+            purposeDTOList.add(purposeDTO);
+        }
+        serviceDTO.setPurposes(purposeDTOList);
+        return serviceDTO;
     }
 
     public static ServiceListDTO getConsentSubjectNameServiceList(List<ServicesDO> servicesDOList) {
@@ -498,5 +513,13 @@ public class ConsentMapping {
         purposeCategory.setPurposeCatShortCode(purposeCategoryDTO.getPurposeCategoryShortCode());
         purposeCategory.setPurposeCatDes(purposeCategoryDTO.getDescription());
         return purposeCategory;
+    }
+
+    public static PurposeCategoryDTO setPurposeCategoryDOToPurposeCategoryDTO(PurposeCategoryDO purposeCategoryDO){
+        PurposeCategoryDTO purposeCategoryDTO=new PurposeCategoryDTO();
+        purposeCategoryDTO.setPurposeCategoryId(purposeCategoryDO.getPurposeCatId());
+        purposeCategoryDTO.setPurposeCategoryShortCode(purposeCategoryDO.getPurposeCatShortCode());
+        purposeCategoryDTO.setDescription(purposeCategoryDO.getPurposeCatDes());
+        return purposeCategoryDTO;
     }
 }

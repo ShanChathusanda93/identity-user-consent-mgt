@@ -25,10 +25,10 @@ public interface ConsentBackend {
     public void setConsentDetailsForUser(ConsentDO consentDO,ServicesDO[] services) throws DataAccessException;
     public void revokeConsent(String subjectName,List<ServicesDO> servicesList) throws DataAccessException;
 
-    public void setDataController(DataControllerDO dataControllerDO) throws DataAccessException;
+    public DataControllerDO setDataController(DataControllerDO dataControllerDO) throws DataAccessException;
     public List<DataControllerDO> getDataControllerList() throws DataAccessException;
-    public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException;
-    public void deleteDataController(int id) throws DataAccessException;
+    public DataControllerDO updateDataController(DataControllerDO dataControllerDO) throws DataAccessException;
+    public DataControllerDO deleteDataController(int id) throws DataAccessException;
     public DataControllerDO getDataControllerById(int id) throws DataAccessException;
 
     public PiiCategoryDO setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException;
@@ -43,14 +43,18 @@ public interface ConsentBackend {
     public PurposeDetailsDO deletePurpose(int purposeId) throws DataAccessException;
     public PurposeDetailsDO getPurposeDetailsById(int id) throws DataAccessException;
 
-    public void setService(ServicesDO service) throws DataAccessException;
+    public ServicesDO setService(ServicesDO service) throws DataAccessException;
     public List<ServicesDO> getServicesForConf() throws DataAccessException;
-    public void updateService(ServicesDO services) throws DataAccessException;
+    public ServicesDO updateService(ServicesDO services) throws DataAccessException;
     public ServicesDO deleteService(int serviceId) throws DataAccessException;
-    public void setPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
+    public ServicesDO getServiceById(int id) throws DataAccessException;
+
+    public PurposeCategoryDO setPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
     public List<PurposeCategoryDO> getPurposeCategories() throws DataAccessException;
-    public void updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
+    public PurposeCategoryDO updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException;
     public PurposeCategoryDO deletePurposeCategory(int categoryId) throws DataAccessException;
+    public PurposeCategoryDO getPurposeCategoryById(int id) throws DataAccessException;
+
     public void setThirdParty(ThirdPartyDO thirdParty) throws DataAccessException;
     public List<ThirdPartyDO> getThirdParties() throws DataAccessException;
     public void updateThirdParty(ThirdPartyDO thirdParty) throws DataAccessException;

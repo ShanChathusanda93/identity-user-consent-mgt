@@ -270,6 +270,22 @@ paths:
         500:
           description: "Internal server error"
 
+  /consent/configuration/purpose-category/id:
+    get:
+      summary: "Get purpose category details"
+      description: "Get purpose category details from purpose category id"
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            $ref: '#/definitions/PurposeCategory'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
+
   /consent/configuration/personalInfoCategory:
     post:
       summary: "Adding a PII category"
@@ -402,7 +418,21 @@ paths:
         500:
           description: "Internal server error"
 
-
+  /consent/configuration/service/id:
+    get:
+      summary: "Get a service by id"
+      description: "Get details of a service from id"
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: "Successful Operation"
+          schema:
+            $ref: '#/definitions/ServiceWebForm'
+        404:
+          description: "Content not found"
+        500:
+          description: "Internal server error"
 
   /consent/configuration/purpose:
     post:

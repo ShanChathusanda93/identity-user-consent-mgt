@@ -40,6 +40,7 @@ public abstract class ConsentApiService {
     public abstract Response consentConfigurationPersonalInfoCategoryPut(PiiCategoryDTO piiCategory);
     public abstract Response consentConfigurationPurposeCategoryDelete(Integer purposeCategoryId);
     public abstract Response consentConfigurationPurposeCategoryGet();
+    public abstract Response consentConfigurationPurposeCategoryIdGet(Integer categoryId);
     public abstract Response consentConfigurationPurposeCategoryPost(PurposeCategoryDTO purposeCategory);
     public abstract Response consentConfigurationPurposeCategoryPut(PurposeCategoryDTO purposeCategory);
     public abstract Response consentConfigurationPurposeDelete(Integer categoryId);
@@ -49,6 +50,7 @@ public abstract class ConsentApiService {
     public abstract Response consentConfigurationPurposePut(PurposeDTO purpose);
     public abstract Response consentConfigurationServiceDelete(Integer categoryId);
     public abstract Response consentConfigurationServiceGet();
+    public abstract Response consentConfigurationServiceIdGet(Integer categoryId);
     public abstract Response consentConfigurationServicePost(ServiceWebFormDTO service);
     public abstract Response consentConfigurationServicePut(ServiceWebFormDTO service);
     public abstract Response consentConfigurationThirdPartyDelete(Integer categoryId);

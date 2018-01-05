@@ -224,6 +224,22 @@ public class ConsentApi  {
     {
     return delegate.consentConfigurationPurposeCategoryGet();
     }
+    @GET
+    @Path("/configuration/purpose-category/id")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Get purpose category details", notes = "Get purpose category details from purpose category id", response = PurposeCategoryDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful operation"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationPurposeCategoryIdGet(@ApiParam(value = "Category id",required=true) @QueryParam("categoryId")  Integer categoryId)
+    {
+    return delegate.consentConfigurationPurposeCategoryIdGet(categoryId);
+    }
     @POST
     @Path("/configuration/purpose-category")
     @Consumes({ "application/json" })
@@ -363,6 +379,22 @@ public class ConsentApi  {
     public Response consentConfigurationServiceGet()
     {
     return delegate.consentConfigurationServiceGet();
+    }
+    @GET
+    @Path("/configuration/service/id")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Get a service by id", notes = "Get details of a service from id", response = ServiceWebFormDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful Operation"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Content not found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal server error") })
+
+    public Response consentConfigurationServiceIdGet(@ApiParam(value = "Category id",required=true) @QueryParam("categoryId")  Integer categoryId)
+    {
+    return delegate.consentConfigurationServiceIdGet(categoryId);
     }
     @POST
     @Path("/configuration/service")

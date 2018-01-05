@@ -1117,13 +1117,17 @@ public class ConsentDao extends DBConnect implements MainDao {
      * @throws DataAccessException
      */
     @Override
-    public void addDataController(DataControllerDO dataController) throws DataAccessException {
+    public DataControllerDO addDataController(DataControllerDO dataController) throws DataAccessException {
+        DataControllerDO addedDataControllerDO=new DataControllerDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
+            PreparedStatement selectIdPrepStat=null;
+            ResultSet resultSet=null;
 
             String query = "INSERT INTO user_consent.DATA_CONTROLLER(ORGANIZATION_NAME,CONTACT_NAME,STREET,COUNTRY,EMAIL," +
                     "PHONE_NUMBER,PUBLIC_KEY,POLICY_URL) VALUES(?,?,?,?,?,?,?,?)";
+            String selectIdQuery="SELECT last_insert_id() AS id FROM DATA_CONTROLLER ORDER BY id DESC LIMIT 1;";
             try {
                 preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, dataController.getOrgName());
@@ -1135,6 +1139,11 @@ public class ConsentDao extends DBConnect implements MainDao {
                 preparedStatement.setString(7, dataController.getPublicKey());
                 preparedStatement.setString(8, dataController.getPolicyUrl());
                 preparedStatement.executeUpdate();
+
+                selectIdPrepStat=connection.prepareStatement(selectIdQuery);
+                resultSet=selectIdPrepStat.executeQuery();
+                resultSet.first();
+                addedDataControllerDO=getDataController(resultSet.getInt(1));
                 log.info("Successfully added the data controller details to the database");
             } catch (SQLException e) {
                 log.error("Database error. Could not add data controller details to the database. - " + e.getMessage()
@@ -1145,6 +1154,7 @@ public class ConsentDao extends DBConnect implements MainDao {
                 DBUtils.closeAllConnections(connection, preparedStatement);
             }
         }
+        return addedDataControllerDO;
     }
 
     /**
@@ -1154,7 +1164,8 @@ public class ConsentDao extends DBConnect implements MainDao {
      * @param dataControllerDO
      * @throws DataAccessException
      */
-    public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException {
+    public DataControllerDO updateDataController(DataControllerDO dataControllerDO) throws DataAccessException {
+        DataControllerDO updatedDataControllerDO=new DataControllerDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
@@ -1172,6 +1183,7 @@ public class ConsentDao extends DBConnect implements MainDao {
                 preparedStatement.setString(8, dataControllerDO.getPolicyUrl());
                 preparedStatement.setInt(9, dataControllerDO.getDataControllerId());
                 preparedStatement.executeUpdate();
+                updatedDataControllerDO=getDataController(dataControllerDO.getDataControllerId());
             } catch (SQLException e) {
                 log.error("Database error. Could not update the data controller. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not update the data controller. - " + e.getMessage
@@ -1180,6 +1192,7 @@ public class ConsentDao extends DBConnect implements MainDao {
                 DBUtils.closeAllConnections(connection, preparedStatement);
             }
         }
+        return updatedDataControllerDO;
     }
 
     /**
@@ -1190,7 +1203,7 @@ public class ConsentDao extends DBConnect implements MainDao {
      * @param dataControllerId
      * @throws DataAccessException
      */
-    public void deleteDataController(int dataControllerId) throws DataAccessException {
+    public DataControllerDO deleteDataController(int dataControllerId) throws DataAccessException {
         DataControllerDO dataController = new DataControllerDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
@@ -1235,6 +1248,7 @@ public class ConsentDao extends DBConnect implements MainDao {
                 DBUtils.closeAllConnections(preparedStatement);
             }
         }
+        return dataController;
     }
 
     /**
@@ -1912,26 +1926,38 @@ public class ConsentDao extends DBConnect implements MainDao {
      * @override ServicesDAO to add service details to the data store
      */
     @Override
-    public void addServiceDetails(ServicesDO service) throws DataAccessException {
+    public ServicesDO addServiceDetails(ServicesDO service) throws DataAccessException {
+        ServicesDO servicesDO=new ServicesDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
+            PreparedStatement selectIdPrepStat=null;
+            ResultSet resultSet=null;
 
             String query = "INSERT INTO user_consent.SERVICES(SERVICE_DESCRIPTION) VALUES(?);";
+            String selectIdQuery="SELECT last_insert_id() AS id FROM SERVICES ORDER BY id DESC LIMIT 1;";
             try {
                 connection.setAutoCommit(false);
                 preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, service.getServiceDescription());
                 preparedStatement.executeUpdate();
-                int serviceId = getServiceIdByService(service.getServiceDescription());
-                mapServiceWithPurposes(connection, serviceId, service);
+//                int serviceId = getServiceIdByService(service.getServiceDescription());
+
+                selectIdPrepStat=connection.prepareStatement(selectIdQuery);
+                resultSet=selectIdPrepStat.executeQuery();
+                resultSet.first();
+
+                mapServiceWithPurposes(connection, resultSet.getInt(1), service);
+                servicesDO=getServiceById(resultSet.getInt(1));
                 connection.commit();
                 log.info("Successfully added service details to the database");
             } catch (SQLException e) {
                 try {
                     connection.rollback();
                 } catch (SQLException e1) {
-                    e1.printStackTrace();
+                    log.error("Rollback error. Could not rollback the service adding. - "+e1.getMessage(),e1);
+                    throw new DataAccessException("Rollback error. Could not rollback the service adding. - " +
+                            ""+e1.getMessage(),e1);
                 }
                 log.error("Database error. Could not add service details to the database. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not add service details to the database. - " + e
@@ -1940,6 +1966,7 @@ public class ConsentDao extends DBConnect implements MainDao {
                 DBUtils.closeAllConnections(connection, preparedStatement);
             }
         }
+        return servicesDO;
     }
 
     //there is another method for this...pls refer
@@ -1983,7 +2010,9 @@ public class ConsentDao extends DBConnect implements MainDao {
             try {
                 connection.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                log.error("Rollback error. Could not rollback service map with purpose. - "+e1.getMessage(),e1);
+                throw new DataAccessException("Rollback error. Could not rollback service map with purpose. - " +
+                        ""+e1.getMessage(),e1);
             }
             log.error("Database error. Could not map service with purposes. - " + e.getMessage(), e);
             throw new DataAccessException("Database error. Could not map service with purposes. - " + e.getMessage(), e);
@@ -2001,14 +2030,17 @@ public class ConsentDao extends DBConnect implements MainDao {
      * @override ServicesDao to update the Services
      */
     @Override
-    public void updateServiceDetails(ServicesDO service) throws DataAccessException {
+    public ServicesDO updateServiceDetails(ServicesDO service) throws DataAccessException {
+        ServicesDO updatedServiceDO=new ServicesDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
+            Savepoint savepoint=null;
 
             String query = "UPDATE user_consent.SERVICES SET SERVICE_DESCRIPTION=? WHERE SERVICE_ID=?;";
             try {
                 connection.setAutoCommit(false);
+                savepoint=connection.setSavepoint();
                 preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, service.getServiceDescription());
                 preparedStatement.setInt(2, service.getServiceId());
@@ -2016,12 +2048,15 @@ public class ConsentDao extends DBConnect implements MainDao {
                 deleteServiceWithPurposesMap(connection, service.getServiceId());
                 mapServiceWithPurposes(connection, service.getServiceId(), service);
                 connection.commit();
+                updatedServiceDO=getServiceById(service.getServiceId());
                 log.info("Successfully updated the service details to the database");
             } catch (SQLException e) {
                 try {
-                    connection.rollback();
+                    connection.rollback(savepoint);
                 } catch (SQLException e1) {
-                    e1.printStackTrace();
+                    log.error("Rollback error. Could not rollback service update. - "+e1.getMessage(),e1);
+                    throw new DataAccessException("Rollback error. Could not rollback service update. - " +
+                            ""+e1.getMessage(),e1);
                 }
                 log.error("Database error. Could not update service details. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not update service details. - " + e.getMessage(), e);
@@ -2029,6 +2064,7 @@ public class ConsentDao extends DBConnect implements MainDao {
                 DBUtils.closeAllConnections(connection, preparedStatement);
             }
         }
+        return updatedServiceDO;
     }
 
     //Service Configuration - Delete the service and purpose mapping
@@ -2143,6 +2179,7 @@ public class ConsentDao extends DBConnect implements MainDao {
         ServicesDO service = new ServicesDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
+            Savepoint savepoint=null;
             PreparedStatement selectPreparedStatement = null;
             PreparedStatement deletePurposeMapPrepStat = null;
             PreparedStatement deleteUserMapPrepStat = null;
@@ -2155,6 +2192,8 @@ public class ConsentDao extends DBConnect implements MainDao {
             String deleteQuery = "DELETE FROM SERVICES WHERE SERVICE_ID=?;";
 
             try {
+                connection.setAutoCommit(false);
+                savepoint=connection.setSavepoint();
                 selectPreparedStatement = connection.prepareStatement(selectQuery);
                 selectPreparedStatement.setInt(1, serviceId);
                 resultSet = selectPreparedStatement.executeQuery();
@@ -2173,7 +2212,9 @@ public class ConsentDao extends DBConnect implements MainDao {
                 try {
                     connection.rollback();
                 } catch (SQLException e1) {
-                    e1.printStackTrace();
+                    log.error("Rollback error. Could not rollback service delete. - "+e1.getMessage(),e1);
+                    throw new DataAccessException("Rollback error. Could not rollback service delete. - " +
+                            ""+e1.getMessage(),e1);
                 }
                 log.error("Database error. Could not delete the service. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not delete the service. - " + e.getMessage(), e);
@@ -2182,6 +2223,33 @@ public class ConsentDao extends DBConnect implements MainDao {
             }
         }
         return service;
+    }
+
+    public ServicesDO getServiceById(int id) throws DataAccessException{
+        ServicesDO servicesDO=new ServicesDO();
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+            PreparedStatement selectPrepStat=null;
+            ResultSet resultSet=null;
+
+            String selectQuery="SELECT * FROM SERVICES WHERE SERVICE_ID=?;";
+            try {
+                selectPrepStat=connection.prepareStatement(selectQuery);
+                selectPrepStat.setInt(1,id);
+                resultSet=selectPrepStat.executeQuery();
+                resultSet.first();
+                servicesDO.setServiceId(resultSet.getInt(1));
+                servicesDO.setServiceDescription(resultSet.getString(2));
+                servicesDO.setPurposeDetails(getPurposeDetailsForServiceConf(connection,id).toArray(new
+                        PurposeDetailsDO[0]));
+            } catch (SQLException e) {
+                log.error("Database error. Could not get the service details. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get the service details. - "+e.getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,selectPrepStat,resultSet);
+            }
+        }
+        return servicesDO;
     }
 
     /**
@@ -2412,18 +2480,28 @@ public class ConsentDao extends DBConnect implements MainDao {
      * @param purposeCategory
      * @throws DataAccessException
      */
-    public void addPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
+    public PurposeCategoryDO addPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
+        PurposeCategoryDO addedPurposeCatDO=new PurposeCategoryDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
+            PreparedStatement selectIdPrepStat=null;
+            ResultSet resultSet=null;
 
             String query = "INSERT INTO PURPOSE_CATEGORY (PURPOSE_CAT_SHORT_CODE, PURPOSE_CAT_DESCRIPTION)\n" +
                     "VALUES (?,?);";
+            String selectIdQuery="SELECT last_insert_id() AS id FROM PURPOSE_CATEGORY ORDER BY id DESC LIMIT 1;";
             try {
                 preparedStatement = connection.prepareStatement(query);
                 preparedStatement.setString(1, purposeCategory.getPurposeCatShortCode());
                 preparedStatement.setString(2, purposeCategory.getPurposeCatDes());
                 preparedStatement.executeUpdate();
+                log.info("Successfully added the Purpose Category to the database.");
+
+                selectIdPrepStat=connection.prepareStatement(selectIdQuery);
+                resultSet=selectIdPrepStat.executeQuery();
+                resultSet.first();
+                addedPurposeCatDO=getPurposeCategoryById(resultSet.getInt(1));
             } catch (SQLException e) {
                 log.error("Database error. Could not add purpose category. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Colud not add purpose category. - " + e.getMessage(), e);
@@ -2431,6 +2509,7 @@ public class ConsentDao extends DBConnect implements MainDao {
                 DBUtils.closeAllConnections(connection, preparedStatement);
             }
         }
+        return addedPurposeCatDO;
     }
 
 
@@ -2441,7 +2520,8 @@ public class ConsentDao extends DBConnect implements MainDao {
      * @param purposeCategory
      * @throws DataAccessException
      */
-    public void updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
+    public PurposeCategoryDO updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
+        PurposeCategoryDO updatedPurposeCatDO=new PurposeCategoryDO();
         if (dbConnect.connect()) {
             Connection connection = dbConnect.getConnection();
             PreparedStatement preparedStatement = null;
@@ -2454,6 +2534,8 @@ public class ConsentDao extends DBConnect implements MainDao {
                 preparedStatement.setString(2, purposeCategory.getPurposeCatDes());
                 preparedStatement.setInt(3, purposeCategory.getPurposeCatId());
                 preparedStatement.executeUpdate();
+                log.info("Successfully updated the Purpose Category to the database");
+                updatedPurposeCatDO=getPurposeCategoryById(purposeCategory.getPurposeCatId());
             } catch (SQLException e) {
                 log.error("Database error. Could not update purpose category. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not update purpose category. - " + e.getMessage(), e);
@@ -2461,6 +2543,7 @@ public class ConsentDao extends DBConnect implements MainDao {
                 DBUtils.closeAllConnections(connection, preparedStatement);
             }
         }
+        return updatedPurposeCatDO;
     }
 
     /**
@@ -2479,6 +2562,7 @@ public class ConsentDao extends DBConnect implements MainDao {
             PreparedStatement deleteMappingsPreparedStatement = null;
             PreparedStatement deletePreparedStatement = null;
             ResultSet resultSet = null;
+            Savepoint savepoint=null;
 
             String selectQuery = "SELECT * FROM PURPOSE_CATEGORY WHERE PURPOSE_CAT_ID=?;";
             String deleteMappingsQuery = "DELETE FROM PURPOSE_MAP_PURPOSE_CAT WHERE PURPOSE_CAT_ID=?;";
@@ -2492,20 +2576,24 @@ public class ConsentDao extends DBConnect implements MainDao {
                 purposeCategory.setPurposeCatShortCode(resultSet.getString(2));
                 purposeCategory.setPurposeCatDes(resultSet.getString(3));
 
+                connection.setAutoCommit(false);
+                savepoint=connection.setSavepoint();
                 deleteMappingsPreparedStatement = connection.prepareStatement(deleteMappingsQuery);
                 deleteMappingsPreparedStatement.setInt(1, categoryId);
                 deleteMappingsPreparedStatement.executeUpdate();
 
-                connection.setAutoCommit(false);
                 deletePreparedStatement = connection.prepareStatement(deleteQuery);
                 deletePreparedStatement.setInt(1, categoryId);
                 deletePreparedStatement.executeUpdate();
                 connection.commit();
+                log.info("Successfully deleted the Purpose Category from the database");
             } catch (SQLException e) {
                 try {
-                    connection.rollback();
+                    connection.rollback(savepoint);
                 } catch (SQLException e1) {
-                    e1.printStackTrace();
+                    log.error("Rollback error. Could not rollback the Purpose Category delete. - "+e1.getMessage(),e);
+                    throw new DataAccessException("Rollback error. Could not rollback the Purpose Category delete. - " +
+                            ""+e1.getMessage(),e);
                 }
                 log.error("Database error. Could not delete purpose category. - " + e.getMessage(), e);
                 throw new DataAccessException("Database error. Could not delete purpose category. - " + e.getMessage(), e);
@@ -2515,6 +2603,34 @@ public class ConsentDao extends DBConnect implements MainDao {
         }
         return purposeCategory;
     }
+
+    public PurposeCategoryDO getPurposeCategoryById(int id) throws DataAccessException{
+        PurposeCategoryDO purposeCategoryDO=new PurposeCategoryDO();
+        if(dbConnect.connect()){
+            Connection connection=dbConnect.getConnection();
+            PreparedStatement selectPrepStat=null;
+            ResultSet resultSet=null;
+
+            String selectQuery="SELECT * FROM PURPOSE_CATEGORY WHERE PURPOSE_CAT_ID=?;";
+            try {
+                selectPrepStat=connection.prepareStatement(selectQuery);
+                selectPrepStat.setInt(1,id);
+                resultSet=selectPrepStat.executeQuery();
+                resultSet.first();
+                purposeCategoryDO.setPurposeCatId(resultSet.getInt(1));
+                purposeCategoryDO.setPurposeCatShortCode(resultSet.getString(2));
+                purposeCategoryDO.setPurposeCatDes(resultSet.getString(3));
+            } catch (SQLException e) {
+                log.error("Database error. Could not get the purpose category details. - "+e.getMessage(),e);
+                throw new DataAccessException("Database error. Could not get the purpose category details. - "+e
+                        .getMessage(),e);
+            } finally {
+                DBUtils.closeAllConnections(connection,selectPrepStat,resultSet);
+            }
+        }
+        return purposeCategoryDO;
+    }
+
 
     /**
      * Third Party Configuration

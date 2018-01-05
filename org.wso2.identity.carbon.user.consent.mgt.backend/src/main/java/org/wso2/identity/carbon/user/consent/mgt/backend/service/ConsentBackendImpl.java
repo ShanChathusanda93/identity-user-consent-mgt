@@ -2,8 +2,8 @@ package org.wso2.identity.carbon.user.consent.mgt.backend.service;
 
 import org.json.simple.JSONObject;
 import org.wso2.identity.carbon.user.consent.mgt.backend.dao.ConsentDao;
-import org.wso2.identity.carbon.user.consent.mgt.backend.jsonParser.JSONParser;
 import org.wso2.identity.carbon.user.consent.mgt.backend.exception.DataAccessException;
+import org.wso2.identity.carbon.user.consent.mgt.backend.jsonParser.JSONParser;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.ConsentDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.DataControllerDO;
 import org.wso2.identity.carbon.user.consent.mgt.backend.model.PiiCategoryDO;
@@ -51,9 +51,9 @@ public class ConsentBackendImpl implements ConsentBackend {
 
     //-- Data Controller Configurations
     @Override
-    public void setDataController(DataControllerDO dataControllerDO) throws DataAccessException {
-        consentDao.addDataController(dataControllerDO);
-//        consentDao.getDataController(1)
+    public DataControllerDO setDataController(DataControllerDO dataControllerDO) throws DataAccessException {
+        DataControllerDO addedDataControllerDO = consentDao.addDataController(dataControllerDO);
+        return addedDataControllerDO;
     }
 
     @Override
@@ -64,24 +64,26 @@ public class ConsentBackendImpl implements ConsentBackend {
 
     @Override
     public DataControllerDO getDataControllerById(int id) throws DataAccessException {
-        DataControllerDO dataController=consentDao.getDataController(id);
+        DataControllerDO dataController = consentDao.getDataController(id);
         return dataController;
     }
 
     @Override
-    public void updateDataController(DataControllerDO dataControllerDO) throws DataAccessException {
-        consentDao.updateDataController(dataControllerDO);
+    public DataControllerDO updateDataController(DataControllerDO dataControllerDO) throws DataAccessException {
+        DataControllerDO updatedDataControllerDO = consentDao.updateDataController(dataControllerDO);
+        return updatedDataControllerDO;
     }
 
     @Override
-    public void deleteDataController(int dataControllerId) throws DataAccessException {
-        consentDao.deleteDataController(dataControllerId);
+    public DataControllerDO deleteDataController(int dataControllerId) throws DataAccessException {
+        DataControllerDO deletedDataControllerDO = consentDao.deleteDataController(dataControllerId);
+        return deletedDataControllerDO;
     }
 
     //-- Personally Identifiable Info Category Configuration
     @Override
     public PiiCategoryDO setPersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
-        PiiCategoryDO piiCategory=consentDao.addPiiCategory(piiCategoryDO);
+        PiiCategoryDO piiCategory = consentDao.addPiiCategory(piiCategoryDO);
         return piiCategory;
     }
 
@@ -93,7 +95,7 @@ public class ConsentBackendImpl implements ConsentBackend {
 
     @Override
     public PiiCategoryDO updatePersonalInfoCat(PiiCategoryDO piiCategoryDO) throws DataAccessException {
-        PiiCategoryDO piiCategory=consentDao.updatePersonalInfoCat(piiCategoryDO);
+        PiiCategoryDO piiCategory = consentDao.updatePersonalInfoCat(piiCategoryDO);
         return piiCategory;
     }
 
@@ -105,14 +107,14 @@ public class ConsentBackendImpl implements ConsentBackend {
 
     @Override
     public PiiCategoryDO getPersonalInfoCatById(int categoryId) throws DataAccessException {
-        PiiCategoryDO piiCategory=consentDao.getPersonalInfoCatById(categoryId);
+        PiiCategoryDO piiCategory = consentDao.getPersonalInfoCatById(categoryId);
         return piiCategory;
     }
 
     //- Purpose Configuration
     @Override
     public PurposeDetailsDO setPurpose(PurposeDetailsDO purpose) throws DataAccessException {
-        PurposeDetailsDO purposeDetails=consentDao.addPurposeDetails(purpose);
+        PurposeDetailsDO purposeDetails = consentDao.addPurposeDetails(purpose);
         return purposeDetails;
     }
 
@@ -124,7 +126,7 @@ public class ConsentBackendImpl implements ConsentBackend {
 
     @Override
     public PurposeDetailsDO updatePurpose(PurposeDetailsDO purpose) throws DataAccessException {
-        PurposeDetailsDO purposeDetailsDO=consentDao.updatePurposeDetails(purpose);
+        PurposeDetailsDO purposeDetailsDO = consentDao.updatePurposeDetails(purpose);
         return purposeDetailsDO;
     }
 
@@ -136,14 +138,15 @@ public class ConsentBackendImpl implements ConsentBackend {
 
     @Override
     public PurposeDetailsDO getPurposeDetailsById(int id) throws DataAccessException {
-        PurposeDetailsDO purpose=consentDao.getPurposeDetailsById(id);
+        PurposeDetailsDO purpose = consentDao.getPurposeDetailsById(id);
         return purpose;
     }
 
     //-- Service Configuration
     @Override
-    public void setService(ServicesDO service) throws DataAccessException {
-        consentDao.addServiceDetails(service);
+    public ServicesDO setService(ServicesDO service) throws DataAccessException {
+        ServicesDO servicesDO = consentDao.addServiceDetails(service);
+        return servicesDO;
     }
 
     @Override
@@ -153,14 +156,21 @@ public class ConsentBackendImpl implements ConsentBackend {
     }
 
     @Override
-    public void updateService(ServicesDO service) throws DataAccessException {
-        consentDao.updateServiceDetails(service);
+    public ServicesDO updateService(ServicesDO service) throws DataAccessException {
+        ServicesDO servicesDO = consentDao.updateServiceDetails(service);
+        return servicesDO;
     }
 
     @Override
     public ServicesDO deleteService(int serviceId) throws DataAccessException {
         ServicesDO service = consentDao.deleteService(serviceId);
         return service;
+    }
+
+    @Override
+    public ServicesDO getServiceById(int id) throws DataAccessException {
+        ServicesDO servicesDO = consentDao.getServiceById(id);
+        return servicesDO;
     }
 
     //-- Purpose Category Configuration
@@ -171,19 +181,27 @@ public class ConsentBackendImpl implements ConsentBackend {
     }
 
     @Override
-    public void setPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
-        consentDao.addPurposeCategory(purposeCategory);
+    public PurposeCategoryDO setPurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
+        PurposeCategoryDO addedPurposeCatDO = consentDao.addPurposeCategory(purposeCategory);
+        return addedPurposeCatDO;
     }
 
     @Override
-    public void updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
-        consentDao.updatePurposeCategory(purposeCategory);
+    public PurposeCategoryDO updatePurposeCategory(PurposeCategoryDO purposeCategory) throws DataAccessException {
+        PurposeCategoryDO updatedPurposeCatDO=consentDao.updatePurposeCategory(purposeCategory);
+        return updatedPurposeCatDO;
     }
 
     @Override
     public PurposeCategoryDO deletePurposeCategory(int categoryId) throws DataAccessException {
         PurposeCategoryDO purposeCategory = consentDao.deletePurposeCategory(categoryId);
         return purposeCategory;
+    }
+
+    @Override
+    public PurposeCategoryDO getPurposeCategoryById(int id) throws DataAccessException {
+        PurposeCategoryDO purposeCategoryDO=consentDao.getPurposeCategoryById(id);
+        return purposeCategoryDO;
     }
 
     //-- Third Party Configuration

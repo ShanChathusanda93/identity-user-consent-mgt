@@ -12,8 +12,8 @@ public interface ServicesDao {
     public ServicesDO[] getServicePurposesByUserByServiceByPurposeId(String piiPrincipalId, int serviceId,
                                                                      int purposeId) throws DataAccessException;
     public int getServiceIdByService(String serviceName) throws DataAccessException;
-    public void addServiceDetails(ServicesDO service) throws DataAccessException;
-    public void updateServiceDetails(ServicesDO service) throws DataAccessException;
+    public ServicesDO addServiceDetails(ServicesDO service) throws DataAccessException;
+    public ServicesDO updateServiceDetails(ServicesDO service) throws DataAccessException;
     public void updateUserConsentDetails(ConsentDO consent, List<ServicesDO> revockedServicesList) throws
             DataAccessException;
     public List<ServicesDO> getServicesForConf() throws DataAccessException;
